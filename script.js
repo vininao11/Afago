@@ -1,4 +1,4 @@
-const WHATSAPP_NUMBER = "5511999999999";
+const WHATSAPP_NUMBER = "5511980865638";
 
 const massagensData = [
   { id: 'm1', cat: 'relax', title: 'Massagem Relaxante', duration: '60 min', price: 120, desc: 'Movimentos suaves e contínuos com óleo essencial de lavanda. Ideal para alívio do estresse.', icon: 'icon-flower' },
