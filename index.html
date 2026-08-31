@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Afago Bem-Estar — Massagens & Produtos Artesanais</title>
 <meta name="description" content="Massagens terapêuticas e produtos naturais feitos à mão. Agende sua massagem ou conheça nossa linha de sabonetes artesanais.">
+<meta name="theme-color" content="#a85a3c">
+<link rel="icon" type="image/png" href="assets/logo.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Afago Bem-Estar — Massagens & Produtos Artesanais">
+<meta property="og:description" content="Massagens terapêuticas e produtos naturais feitos à mão. Um afago para o corpo, um respiro para a alma.">
+<meta property="og:image" content="assets/logo.png">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -41,7 +49,9 @@
 
 <header class="nav" id="siteNav">
   <div class="container nav-inner">
-    <a href="#" class="logo" data-view-link="inicio">Afago<small>bem-estar</small></a>
+    <a href="#" class="logo brand-logo" data-view-link="inicio" aria-label="Afago Bem-Estar">
+      <img src="assets/logo.png" alt="Afago Bem-Estar">
+    </a>
     <nav class="nav-links" id="navLinks">
       <a href="#" class="nav-link active" data-view-link="inicio">Início</a>
       <a href="#" class="nav-link" data-view-link="sobre">Sobre</a>
@@ -87,7 +97,7 @@
         <div class="blob blob--1"></div>
         <div class="blob blob--2"></div>
         <div class="blob blob--3"></div>
-        <svg class="hero-mark"><use href="#icon-flower"/></svg>
+        <img src="assets/logo-flor.png" class="hero-mark" alt="Tulipa Afago">
       </div>
     </div>
   </div>
@@ -153,32 +163,7 @@
     </div>
   </div>
 
-  <div class="section section--alt reveal">
-    <div class="container">
-      <div class="section-head center">
-        <span class="eyebrow" style="color:var(--clay)">Depoimentos</span>
-        <h2 style="margin-top:10px">Quem já sentiu o afago</h2>
-      </div>
-      <div class="testi-grid">
-        <div class="testi-card">
-          <div class="stars"><svg class="icon"><use href="#icon-star"/></svg><svg class="icon"><use href="#icon-star"/></svg><svg class="icon"><use href="#icon-star"/></svg><svg class="icon"><use href="#icon-star"/></svg><svg class="icon"><use href="#icon-star"/></svg></div>
-          <p>"Saí de lá completamente renovada. O ambiente é acolhedor e o toque, muito cuidadoso."</p>
-          <div class="testi-name">Marina S.</div>
-        </div>
-        <div class="testi-card">
-          <div class="stars"><svg class="icon"><use href="#icon-star"/></svg><svg class="icon"><use href="#icon-star"/></svg><svg class="icon"><use href="#icon-star"/></svg><svg class="icon"><use href="#icon-star"/></svg><svg class="icon"><use href="#icon-star"/></svg></div>
-          <p>"Os sabonetes viraram presente pra toda a família. Cheiro delicado e pele super macia."</p>
-          <div class="testi-name">Juliana R.</div>
-        </div>
-        <div class="testi-card">
-          <div class="stars"><svg class="icon"><use href="#icon-star"/></svg><svg class="icon"><use href="#icon-star"/></svg><svg class="icon"><use href="#icon-star"/></svg><svg class="icon"><use href="#icon-star"/></svg><svg class="icon"><use href="#icon-star"/></svg></div>
-          <p>"Agendei pela primeira vez sem saber o que esperar e virei cliente fixo. Recomendo muito."</p>
-          <div class="testi-name">Carlos T.</div>
-        </div>
-      </div>
-      <p class="testi-disclaimer">Depoimentos ilustrativos — substitua pelos relatos reais dos seus clientes.</p>
-    </div>
-  </div>
+
 
 </section>
 
@@ -212,8 +197,46 @@
         <h2 style="margin-top:10px">Encontre o cuidado ideal para você</h2>
         <p>Todas as sessões incluem ambiente climatizado, música e óleos naturais. Escolha por categoria ou veja todas as opções.</p>
       </div>
-      <div class="filter-row" id="massagensFilters" data-target="massagens"></div>
-      <div class="grid-cards" id="massagensGrid"></div>
+      
+      <div class="tab-row" id="massagensTabs">
+        <button class="tab-btn is-active" data-tab="massagens-unitarias">Massagens Unitárias</button>
+        <button class="tab-btn" data-tab="pacotes-promocionais">Pacotes Promocionais</button>
+      </div>
+
+      <div id="tab-massagens-unitarias" class="tab-content">
+        <div class="filter-row" id="massagensFilters" data-target="massagens"></div>
+        <div class="grid-cards" id="massagensGrid"></div>
+      </div>
+
+      <div id="tab-pacotes-promocionais" class="tab-content" style="display:none">
+        <div class="section-head" style="margin-bottom:var(--sp-5)">
+          <span class="eyebrow" style="color:var(--honey)">Projeto Verão</span>
+          <h3 style="margin-top:10px;font-size:1.4rem">Drenagem Linfática · Massagem Modeladora</h3>
+          <p style="color:var(--espresso-2);margin-top:8px">Mais leveza, definição e autoestima para o seu verão! Pacotes com validade de 4 meses.</p>
+        </div>
+        <div class="pacotes-grid" id="pacotesGrid"></div>
+        <div class="pacote-beneficios">
+          <div class="beneficios-grid">
+            <div class="beneficio-item">
+              <div class="icon-wrap"><svg class="icon"><use href="#icon-droplet"/></svg></div>
+              <div><h4>Reduz inchaço</h4><p>Auxilia na retenção de líquidos</p></div>
+            </div>
+            <div class="beneficio-item">
+              <div class="icon-wrap"><svg class="icon"><use href="#icon-leaf"/></svg></div>
+              <div><h4>Define contorno</h4><p>Auxilia na definição corporal</p></div>
+            </div>
+            <div class="beneficio-item">
+              <div class="icon-wrap"><svg class="icon"><use href="#icon-star"/></svg></div>
+              <div><h4>Melhora circulação</h4><p>Textura mais saudável da pele</p></div>
+            </div>
+            <div class="beneficio-item">
+              <div class="icon-wrap"><svg class="icon"><use href="#icon-heart"/></svg></div>
+              <div><h4>Mais bem-estar</h4><p>Leveza e autoestima no dia a dia</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -244,19 +267,19 @@
           <h3>Informações</h3>
           <div class="contact-row">
             <div class="icon-wrap"><svg class="icon"><use href="#icon-pin"/></svg></div>
-            <div><strong>Endereço</strong><span>Av. Exemplo, 123 — Bairro, Cidade/UF<span class="placeholder-tag">atualizar</span></span></div>
+            <div><strong>Atendimento</strong><span>São Paulo e região · atendimentos em domicílio ou local combinado</span></div>
           </div>
           <div class="contact-row">
             <div class="icon-wrap"><svg class="icon"><use href="#icon-phone"/></svg></div>
-            <div><strong>WhatsApp</strong><span>(11) 98086-5638<span class="placeholder-tag">atualizar</span></span></div>
+            <div><strong>WhatsApp</strong><a href="tel:+554284264566">(42) 8426-4566</a></div>
           </div>
           <div class="contact-row">
             <div class="icon-wrap"><svg class="icon"><use href="#icon-mail"/></svg></div>
-            <div><strong>E-mail</strong><span>contato@afagobemestar.com.br<span class="placeholder-tag">atualizar</span></span></div>
+            <div><strong>Contato</strong><span>Atendimento e agendamentos pelo WhatsApp</span></div>
           </div>
           <div class="contact-row">
             <div class="icon-wrap"><svg class="icon"><use href="#icon-clock"/></svg></div>
-            <div><strong>Horário</strong><span>Seg a Sáb · 9h às 19h<span class="placeholder-tag">atualizar</span></span></div>
+            <div><strong>Atendimento</strong><span>Mediante agendamento prévio</span></div>
           </div>
           <div class="contact-socials">
             <a class="social-btn" href="https://www.instagram.com/afagobemestar/" target="_blank" rel="noopener" aria-label="Instagram"><svg class="icon"><use href="#icon-camera"/></svg></a>
@@ -267,17 +290,14 @@
         <div class="form-card">
           <form id="contactForm">
             <div class="form-row"><label for="cName">Nome</label><input id="cName" type="text" required placeholder="Seu nome"></div>
-            <div class="form-grid-2">
-              <div class="form-row"><label for="cEmail">E-mail</label><input id="cEmail" type="email" required placeholder="voce@email.com"></div>
-              <div class="form-row"><label for="cPhone">Telefone</label><input id="cPhone" type="tel" required placeholder="(11) 90000-0000"></div>
-            </div>
+            <div class="form-row"><label for="cPhone">WhatsApp</label><input id="cPhone" type="tel" required placeholder="(42) 8426-4566" inputmode="tel" autocomplete="tel"></div>
             <div class="form-row"><label for="cMsg">Mensagem</label><textarea id="cMsg" rows="4" required placeholder="Como podemos ajudar?"></textarea></div>
             <button type="submit" class="btn btn-primary btn-block">Enviar mensagem</button>
           </form>
           <div class="form-success" id="contactSuccess">
             <div class="icon-wrap"><svg class="icon"><use href="#icon-check"/></svg></div>
-            <h3>Mensagem enviada!</h3>
-            <p>Obrigado pelo contato. Responderemos em breve.</p>
+            <h3>Mensagem preparada!</h3>
+            <p>Sua mensagem foi preparada. Clique abaixo para continuar o atendimento pelo WhatsApp.</p><a id="contactWhatsappLink" href="#" target="_blank" rel="noopener" class="btn btn-primary" style="margin-top:16px">Abrir WhatsApp</a>
           </div>
         </div>
       </div>
@@ -291,7 +311,9 @@
   <div class="container">
     <div class="footer-grid">
       <div>
-        <a href="#" class="logo" data-view-link="inicio">Afago<small style="color:var(--honey)">bem-estar</small></a>
+        <a href="#" class="logo brand-logo" data-view-link="inicio" aria-label="Afago Bem-Estar">
+      <img src="assets/logo.png" alt="Afago Bem-Estar">
+    </a>
         <p class="footer-about">Massagens terapêuticas e produtos naturais feitos à mão, para o seu ritual de autocuidado.</p>
       </div>
       <div>
@@ -306,8 +328,8 @@
       <div>
         <h4>Contato</h4>
         <ul class="footer-links">
-          <li>(11) 98086-5638</li>
-          <li>contato@afagobemestar.com.br</li>
+          <li><a href="https://wa.me/5511920113729" target="_blank" rel="noopener">(11) 92011-3729 — WhatsApp</a></li>
+          <li>Atendimento mediante agendamento</li>
           <li><a href="https://www.instagram.com/afagobemestar/" target="_blank" rel="noopener">@afagobemestar</a></li>
         </ul>
       </div>
@@ -335,7 +357,7 @@
         <div class="form-row"><label for="bTime">Horário</label><select id="bTime" required></select></div>
       </div>
       <div class="form-row"><label for="bName">Nome completo</label><input id="bName" type="text" required placeholder="Seu nome"></div>
-      <div class="form-row"><label for="bPhone">WhatsApp</label><input id="bPhone" type="tel" required placeholder="(11) 90000-0000"></div>
+      <div class="form-row"><label for="bPhone">WhatsApp</label><input id="bPhone" type="tel" required placeholder="(42) 8426-4566"></div>
       <div class="form-row"><label for="bNotes">Observações (opcional)</label><textarea id="bNotes" rows="2" placeholder="Alguma preferência ou observação?"></textarea></div>
       <button type="submit" class="btn btn-primary btn-block">Confirmar agendamento</button>
     </form>
