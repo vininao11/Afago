@@ -1,1 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo · Afago Bem-Estar</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Georgia', serif; }
+    body { background: #f8f5f0; color: #333; min-height: 100vh; }
 
+    #tela-login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #faf6f0, #f0ebe3);
+    }
+    .login-box {
+      background: #fff;
+      padding: 3rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-box img { max-width: 140px; margin-bottom: 1.5rem; }
+    .login-box h1 { font-size: 1.8rem; color: #5c4033; margin-bottom: 2rem; }
+    .login-box input {
+      width: 100%;
+      padding: 0.9rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    .login-box button {
+      width: 100%;
+      padding: 0.9rem;
+      background: #8b5a3c;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background 0.2s;
+    }
+    .login-box button:hover { background: #6f4730; }
+
+    #painel { display: none; flex-direction: column; min-height: 100vh; }
+    .cabecalho {
+      background: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e8e4dc;
+    }
+    .cabecalho .logo { display: flex; align-items: center; gap: 1rem; }
+    .cabecalho .logo img { max-height: 50px; }
+    .cabecalho .logo h1 { font-size: 1.4rem; color: #5c4033; }
+    .cabecalho button {
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .corpo { display: flex; flex: 1; }
+    .barra-lateral {
+      width: 220px;
+      background: #fff;
+      border-right: 1px solid #e8e4dc;
+      padding: 1.5rem 0;
+    }
+    .aba-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 0.9rem 1.5rem;
+      background: transparent;
+      border: none;
+      font-size: 0.95rem;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .aba-btn:hover, .aba-btn.ativa {
+      background: #f5efe6;
+      color: #5c4033;
+      font-weight: bold;
+    }
+
+    .conteudo { flex: 1; padding: 2rem; overflow-y: auto; }
+    .conteudo-aba { display: none; }
+    .conteudo-aba.ativa { display: block; }
+    .conteudo h2 { font-size: 1.6rem; color: #5c4033; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e8e4dc; }
+
+    .cards-dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
+    .card-dash {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    .card-dash .numero { font-size: 2.2rem; font-weight: bold; color: #8b5a3c; }
+    .card-dash .rotulo { font-size: 0.9rem; color: #777; margin-top: 0.3rem; }
+
+    .form-bloco {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .form-bloco h3 { font-size: 1.1rem; color: #5c4033; margin-bottom: 1rem; }
+    .form-bloco input, .form-bloco select, .form-bloco textarea {
+      width: 100%;
+      padding: 0.7rem;
+      margin: 0.4rem 0;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 0.95rem;
+    }
+    .form-bloco button {
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    .form-bloco button:hover { background: #219653; }
+
+    .item-lista {
+      background: #fff;
+      padding: 1rem 1.2rem;
+      border-radius: 8px;
+      margin-bottom: 0.8rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .item-lista strong { color: #5c4033; font-size: 1rem; }
+    .item-lista small { color: #888; display: block; margin: 0.2rem 0 0.4rem; }
+    .item-lista .obs { color: #555; font-style: italic; margin: 0.3rem 0; font-size: 0.9rem; }
+    .item-lista .acoes { margin-top: 0.5rem; }
+    .item-lista button {
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-right: 0.5rem;
+    }
+    .item-lista button.editar { background: #f39c12; color: #fff; }
+    .item-lista button.excluir { background: #e74c3c; color: #fff; }
+    .status-select {
+      padding: 0.4rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      margin-right: 0.5rem;
+    }
+
+    a { color: #8b5a3c; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    @media(max-width: 900px) {
+      .cards-dashboard { grid-template-columns: repeat(2, 1fr); }
+      .corpo { flex-direction: column; }
+      .barra-lateral { width: 100%; display: flex; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <section id="tela-login">
+    <div class="login-box">
+      <img src="../assets/logo.png" alt="Afago Bem-Estar">
+      <h1>Painel Administrativo</h1>
+      <form id="form-login">
+        <input type="email" id="email" placeholder="Seu e-mail" required>
+        <input type="password" id="senha" placeholder="Sua senha" required>
+        <button type="submit">Entrar</button>
+      </form>
+    </div>
+  </section>
+
+  <div id="painel">
+    <header class="cabecalho">
+      <div class="logo">
+        <img src="../assets/logo.png" alt="Afago Bem-Estar">
+        <h1>Afago · Painel de Controle</h1>
+      </div>
+      <button id="btn-sair">Sair</button>
+    </header>
+
+    <div class="corpo">
+      <nav class="barra-lateral">
+        <button class="aba-btn ativa" data-aba="dashboard">📊 Dashboard</button>
+        <button class="aba-btn" data-aba="massagens">💆 Massagens</button>
+        <button class="aba-btn" data-aba="pacotes">🎁 Pacotes</button>
+        <button class="aba-btn" data-aba="produtos">🧴 Produtos</button>
+        <button class="aba-btn" data-aba="agendamentos">📅 Agendamentos</button>
+        <button class="aba-btn" data-aba="contatos">💬 Mensagens</button>
+      </nav>
+
+      <main class="conteudo">
+
+        <div id="aba-dashboard" class="conteudo-aba ativa">
+          <h2>Visão Geral</h2>
+          <div class="cards-dashboard">
+            <div class="card-dash"><div class="numero" id="qtd-agendamentos">0</div><div class="rotulo">Agendamentos</div></div>
+            <div class="card-dash"><div class="numero" id="qtd-contatos">0</div><div class="rotulo">Mensagens</div></div>
+            <div class="card-dash"><div class="numero" id="qtd-massagens">0</div><div class="rotulo">Massagens</div></div>
+            <div class="card-dash"><div class="numero" id="qtd-produtos">0</div><div class="rotulo">Produtos</div></div>
+          </div>
+          <h3>Últimos Agendamentos</h3>
+          <div id="ultimos-agendamentos"></div>
+        </div>
+
+        <div id="aba-massagens" class="conteudo-aba">
+          <h2>Massagens</h2>
+          <div class="form-bloco">
+            <h3>Cadastrar / Editar Massagem</h3>
+            <form id="form-massagem">
+              <input type="hidden" id="m-id">
+              <input type="text" id="m-cat" placeholder="Categoria (relax / terap / dren)" required>
+              <input type="text" id="m-title" placeholder="Nome da Massagem" required>
+              <input type="text" id="m-duration" placeholder="Duração (ex: 60 min)" required>
+              <input type="number" step="0.01" id="m-price" placeholder="Preço R$" required>
+              <input type="text" id="m-desc" placeholder="Descrição" required>
+              <input type="text" id="m-icon" placeholder="Ícone (icon-touch / icon-flower / icon-leaf / icon-droplet)" required>
+              <button type="submit">Salvar Massagem</button>
+            </form>
+          </div>
+          <h3>Lista de Massagens</h3>
+          <div id="lista-massagens"></div>
+        </div>
+
+        <div id="aba-pacotes" class="conteudo-aba">
+          <h2>Pacotes</h2>
+          <div class="form-bloco">
+            <h3>Cadastrar / Editar Pacote</h3>
+            <form id="form-pacote">
+              <input type="hidden" id="p-id">
+              <input type="text" id="p-title" placeholder="Nome do Pacote" required>
+              <input type="text" id="p-sessoes" placeholder="Quantidade de sessões" required>
+              <input type="text" id="p-duracao" placeholder="Duração por sessão" required>
+              <input type="number" step="0.01" id="p-de" placeholder="Valor original (De R$)">
+              <input type="number" step="0.01" id="p-por" placeholder="Valor promocional (Por R$)" required>
+              <input type="number" step="0.01" id="p-economia" placeholder="Economia R$">
+              <input type="text" id="p-icon" placeholder="Ícone" required>
+              <label><input type="checkbox" id="p-destaque"> Em destaque na página inicial</label>
+              <button type="submit">Salvar Pacote</button>
+            </form>
+          </div>
+          <h3>Lista de Pacotes</h3>
+          <div id="lista-pacotes"></div>
+        </div>
+
+        <div id="aba-produtos" class="conteudo-aba">
+          <h2>Produtos</h2>
+          <div class="form-bloco">
+            <h3>Cadastrar / Editar Produto</h3>
+            <form id="form-produto">
+              <input type="hidden" id="pr-id">
+              <input type="text" id="pr-cat" placeholder="Categoria (Sabonetes / Banhos / Óleos)" required>
+              <input type="text" id="pr-title" placeholder="Nome do Produto" required>
+              <input type="text" id="pr-desc" placeholder="Descrição" required>
+              <input type="number" step="0.01" id="pr-price" placeholder="Preço R$" required>
+              <input type="text" id="pr-bg" placeholder="Estilo de fundo (bg-clay / bg-moss / bg-honey / bg-espresso)" required>
+              <input type="text" id="pr-icon" placeholder="Ícone" required>
+              <button type="submit">Salvar Produto</button>
+            </form>
+          </div>
+          <h3>Lista de Produtos</h3>
+          <div id="lista-produtos"></div>
+        </div>
+
+        <div id="aba-agendamentos" class="conteudo-aba">
+          <h2>Agendamentos Recebidos</h2>
+          <div id="lista-agendamentos"></div>
+        </div>
+
+        <div id="aba-contatos" class="conteudo-aba">
+          <h2>Mensagens de Contato</h2>
+          <div id="lista-contatos"></div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
