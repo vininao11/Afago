@@ -6,187 +6,61 @@
   <title>Painel Administrativo · Afago Bem-Estar</title>
   <link rel="stylesheet" href="../style.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Georgia', serif; }
-    body { background: #f8f5f0; color: #333; min-height: 100vh; }
-
-    #tela-login {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #faf6f0, #f0ebe3);
-    }
-    .login-box {
-      background: #fff;
-      padding: 3rem;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-    }
-    .login-box img { max-width: 140px; margin-bottom: 1.5rem; }
-    .login-box h1 { font-size: 1.8rem; color: #5c4033; margin-bottom: 2rem; }
-    .login-box input {
-      width: 100%;
-      padding: 0.9rem;
-      margin: 0.5rem 0;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-    .login-box button {
-      width: 100%;
-      padding: 0.9rem;
-      background: #8b5a3c;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-top: 1rem;
-      transition: background 0.2s;
-    }
-    .login-box button:hover { background: #6f4730; }
-
-    #painel { display: none; flex-direction: column; min-height: 100vh; }
-    .cabecalho {
-      background: #fff;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #e8e4dc;
-    }
-    .cabecalho .logo { display: flex; align-items: center; gap: 1rem; }
-    .cabecalho .logo img { max-height: 50px; }
-    .cabecalho .logo h1 { font-size: 1.4rem; color: #5c4033; }
-    .cabecalho button {
-      background: #e74c3c;
-      color: #fff;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .corpo { display: flex; flex: 1; }
-    .barra-lateral {
-      width: 220px;
-      background: #fff;
-      border-right: 1px solid #e8e4dc;
-      padding: 1.5rem 0;
-    }
-    .aba-btn {
-      display: block;
-      width: 100%;
-      text-align: left;
-      padding: 0.9rem 1.5rem;
-      background: transparent;
-      border: none;
-      font-size: 0.95rem;
-      color: #666;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .aba-btn:hover, .aba-btn.ativa {
-      background: #f5efe6;
-      color: #5c4033;
-      font-weight: bold;
-    }
-
-    .conteudo { flex: 1; padding: 2rem; overflow-y: auto; }
-    .conteudo-aba { display: none; }
-    .conteudo-aba.ativa { display: block; }
-    .conteudo h2 { font-size: 1.6rem; color: #5c4033; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e8e4dc; }
-
-    .cards-dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
-    .card-dash {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      text-align: center;
-    }
-    .card-dash .numero { font-size: 2.2rem; font-weight: bold; color: #8b5a3c; }
-    .card-dash .rotulo { font-size: 0.9rem; color: #777; margin-top: 0.3rem; }
-
-    .form-bloco {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 10px;
-      margin-bottom: 2rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .form-bloco h3 { font-size: 1.1rem; color: #5c4033; margin-bottom: 1rem; }
-    .form-bloco input, .form-bloco select, .form-bloco textarea {
-      width: 100%;
-      padding: 0.7rem;
-      margin: 0.4rem 0;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 0.95rem;
-    }
-    .form-bloco button {
-      background: #27ae60;
-      color: #fff;
-      border: none;
-      padding: 0.7rem 1.5rem;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 0.5rem;
-    }
-    .form-bloco button:hover { background: #219653; }
-
-    .item-lista {
-      background: #fff;
-      padding: 1rem 1.2rem;
-      border-radius: 8px;
-      margin-bottom: 0.8rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    }
-    .item-lista strong { color: #5c4033; font-size: 1rem; }
-    .item-lista small { color: #888; display: block; margin: 0.2rem 0 0.4rem; }
-    .item-lista .obs { color: #555; font-style: italic; margin: 0.3rem 0; font-size: 0.9rem; }
-    .item-lista .acoes { margin-top: 0.5rem; }
-    .item-lista button {
-      padding: 0.4rem 0.8rem;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      margin-right: 0.5rem;
-    }
-    .item-lista button.editar { background: #f39c12; color: #fff; }
-    .item-lista button.excluir { background: #e74c3c; color: #fff; }
-    .status-select {
-      padding: 0.4rem;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      margin-right: 0.5rem;
-    }
-
-    a { color: #8b5a3c; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    @media(max-width: 900px) {
-      .cards-dashboard { grid-template-columns: repeat(2, 1fr); }
-      .corpo { flex-direction: column; }
-      .barra-lateral { width: 100%; display: flex; overflow-x: auto; }
-    }
+    :root{--admin-ink:#25211d;--admin-espresso:#3b2b24;--admin-clay:#a85c3b;--admin-clay-deep:#88462c;--admin-moss:#65734a;--admin-honey:#c99a4a;--admin-linen:#f8f3eb;--admin-white:#fffdf9;--admin-line:#e7ded3;--admin-muted:#786f68;--admin-shadow:0 14px 40px rgba(52,37,27,.08);--admin-radius:18px}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--admin-linen);color:var(--admin-ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    #tela-login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at top right,rgba(168,92,59,.14),transparent 35%),linear-gradient(135deg,#fbf7f1,#efe5da)}
+    .login-shell{width:min(940px,100%);display:grid;grid-template-columns:1fr 1fr;background:var(--admin-white);border:1px solid rgba(59,43,36,.08);border-radius:28px;overflow:hidden;box-shadow:0 28px 80px rgba(52,37,27,.13)}
+    .login-brand{padding:56px 48px;background:linear-gradient(150deg,#3b2b24,#634738);color:#fffaf3;display:flex;flex-direction:column;justify-content:center;min-height:560px}
+    .login-brand img{width:82px;height:82px;object-fit:contain;margin-bottom:28px;filter:brightness(0) invert(1);opacity:.94}
+    .login-brand .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.18em;color:#e8cda9;font-weight:700;margin-bottom:14px}
+    .login-brand h1{font-family:Georgia,serif;font-size:clamp(34px,4vw,50px);line-height:1.02;margin:0 0 18px;font-weight:500}
+    .login-brand p{color:#e9ded3;line-height:1.7;max-width:390px;margin:0}
+    .login-box{padding:56px 48px;display:flex;flex-direction:column;justify-content:center}
+    .login-box h2{font-family:Georgia,serif;font-size:30px;font-weight:500;margin:0 0 8px;color:var(--admin-espresso)}
+    .login-box .sub{color:var(--admin-muted);margin:0 0 30px}
+    .field{margin-bottom:16px}.field label{display:block;font-size:12px;font-weight:700;color:var(--admin-espresso);margin:0 0 7px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--admin-line);background:#fff;padding:13px 14px;border-radius:12px;color:var(--admin-ink);outline:none;transition:.2s}.field textarea{min-height:105px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--admin-clay);box-shadow:0 0 0 4px rgba(168,92,59,.1)}
+    #painel form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}#painel form>input[type=hidden]{display:none}#painel form>input:not([type=hidden]),#painel form>select,#painel form>textarea{width:100%;border:1px solid var(--admin-line);background:#fff;padding:13px 14px;border-radius:12px;color:var(--admin-ink);outline:none;transition:.2s;margin-bottom:14px}#painel form>input:not([type=hidden]):focus,#painel form>select:focus,#painel form>textarea:focus{border-color:var(--admin-clay);box-shadow:0 0 0 4px rgba(168,92,59,.1)}#painel form>label{display:flex;align-items:center;gap:8px;color:var(--admin-muted);font-size:13px;margin:5px 0 14px}#painel form>label input{accent-color:var(--admin-clay)}#painel form>.produto-upload,#painel form>.form-actions{grid-column:1/-1}
+    .btn-primary-admin{border:0;background:var(--admin-clay);color:#fff;padding:13px 18px;border-radius:12px;font-weight:800;transition:.2s;box-shadow:0 8px 18px rgba(168,92,59,.2)}.btn-primary-admin:hover{background:var(--admin-clay-deep);transform:translateY(-1px)}.btn-primary-admin:disabled{opacity:.6;cursor:wait;transform:none}
+    #painel{display:none;min-height:100vh;flex-direction:column}
+    .cabecalho{height:76px;background:rgba(255,253,249,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--admin-line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:20}
+    .cabecalho .logo{display:flex;align-items:center;gap:12px}.cabecalho .logo img{width:42px;height:42px;object-fit:contain}.cabecalho .logo h1{font-family:Georgia,serif;font-size:20px;font-weight:500;color:var(--admin-espresso);margin:0}.cabecalho .logo small{display:block;color:var(--admin-muted);font-family:Inter,sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.14em;margin-top:2px}
+    .logout{border:1px solid var(--admin-line);background:transparent;color:var(--admin-espresso);padding:9px 14px;border-radius:10px;font-weight:700}.logout:hover{border-color:var(--admin-clay);color:var(--admin-clay)}
+    .corpo{display:flex;min-height:calc(100vh - 76px)}
+    .barra-lateral{width:245px;background:#fbf7f1;border-right:1px solid var(--admin-line);padding:22px 14px;flex-shrink:0}.side-title{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#9a8b7e;font-weight:800;padding:0 12px 10px}.aba-btn{width:100%;display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;color:#71665e;padding:12px 13px;border-radius:12px;margin-bottom:4px;font-weight:700}.aba-btn:hover{background:#f1e7dc;color:var(--admin-espresso)}.aba-btn.ativa{background:#ead8ca;color:var(--admin-clay-deep)}
+    .conteudo{flex:1;padding:34px;max-width:1500px;margin:0 auto;width:100%;overflow:hidden}.conteudo-aba{display:none;animation:fade .25s ease}.conteudo-aba.ativa{display:block}@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+    .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:26px}.page-head h2{font-family:Georgia,serif;font-size:34px;font-weight:500;margin:0 0 6px;color:var(--admin-espresso)}.page-head p{margin:0;color:var(--admin-muted)}
+    .cards-dashboard{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:28px}.card-dash{background:var(--admin-white);border:1px solid var(--admin-line);border-radius:var(--admin-radius);padding:22px;box-shadow:var(--admin-shadow)}.card-dash .icone{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#f0e1d6;margin-bottom:18px}.card-dash .numero{font-family:Georgia,serif;font-size:34px;color:var(--admin-espresso)}.card-dash .rotulo{font-size:13px;color:var(--admin-muted);margin-top:3px}
+    .form-bloco{background:var(--admin-white);border:1px solid var(--admin-line);border-radius:var(--admin-radius);padding:24px;box-shadow:var(--admin-shadow);margin-bottom:26px}.form-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}.form-top h3{font-family:Georgia,serif;font-size:22px;font-weight:500;margin:0;color:var(--admin-espresso)}.form-top span{font-size:12px;color:var(--admin-muted)}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}.field-full{grid-column:1/-1}.form-actions{display:flex;gap:10px;align-items:center;margin-top:6px}.btn-secondary{border:1px solid var(--admin-line);background:#fff;color:var(--admin-espresso);padding:12px 16px;border-radius:11px;font-weight:800}.btn-secondary:hover{border-color:var(--admin-clay);color:var(--admin-clay)}
+    .lista-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}.lista-head h3{font-family:Georgia,serif;font-weight:500;font-size:23px;margin:0;color:var(--admin-espresso)}.lista{display:grid;gap:10px}.item-lista{background:var(--admin-white);border:1px solid var(--admin-line);border-radius:14px;padding:16px 18px;box-shadow:0 5px 20px rgba(52,37,27,.04)}.item-lista>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:14px}.item-lista strong{color:var(--admin-espresso);font-size:15px}.item-lista small{display:block;color:var(--admin-muted);line-height:1.55;margin-top:5px}.acoes{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.btn-ghost{border:1px solid var(--admin-line);background:#fff;padding:8px 12px;border-radius:9px;font-size:12px;font-weight:800}.btn-ghost.editar{color:var(--admin-clay-deep)}.btn-ghost.editar:hover{background:#f7e9df;border-color:#d7b8a6}.btn-ghost.excluir{color:#a34032}.btn-ghost.excluir:hover{background:#fae7e4;border-color:#e5b8b2}.price-mini{color:var(--admin-clay);font-weight:800;white-space:nowrap}.pill{display:inline-flex;margin-left:8px;padding:4px 8px;border-radius:999px;background:#eee8df;color:#6e5c4d;font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:800}.status-select{border:1px solid var(--admin-line);padding:8px 10px;border-radius:9px;background:#fff;color:var(--admin-espresso)}.obs{margin-top:10px;padding:10px 12px;background:#f7f1ea;border-radius:9px;color:#6d625a;font-size:13px}
+    .produto-upload{display:grid;grid-template-columns:170px 1fr;gap:18px;align-items:start}.upload-preview{height:170px;border:1px dashed #cdbdaf;border-radius:16px;background:#f6eee6;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}.upload-preview img{width:100%;height:100%;object-fit:cover;display:none}.upload-preview span{color:#8f7b6b;text-align:center;font-size:12px;padding:15px}.file-input{border:1px solid var(--admin-line);background:#fff;border-radius:12px;padding:12px}.file-input input{width:100%}.help{font-size:12px;color:var(--admin-muted);line-height:1.5;margin-top:7px}.produto-admin-item{display:flex;align-items:center;justify-content:space-between;gap:18px}.produto-admin-main{display:flex!important;align-items:center;justify-content:flex-start!important;gap:14px;min-width:0}.produto-admin-main img,.produto-thumb-placeholder{width:58px;height:58px;border-radius:12px;object-fit:cover;background:#ead8ca;display:grid;place-items:center;color:var(--admin-clay);flex-shrink:0}.empty-state{border:1px dashed #d9cabc;border-radius:14px;padding:28px;text-align:center;color:var(--admin-muted);background:rgba(255,253,249,.55)}
+    #adminToast{position:fixed;right:24px;bottom:24px;z-index:100;background:var(--admin-espresso);color:#fff;padding:13px 16px;border-radius:12px;box-shadow:0 15px 35px rgba(0,0,0,.18);opacity:0;pointer-events:none;transform:translateY(10px);transition:.25s;font-size:13px;max-width:360px}#adminToast.show{opacity:1;transform:none}#adminToast[data-tipo=success]{background:#58673e}#adminToast[data-tipo=error]{background:#8f3d32}
+    @media(max-width:1000px){.cards-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}.barra-lateral{width:210px}.conteudo{padding:24px}}
+    @media(max-width:760px){.login-shell{grid-template-columns:1fr}.login-brand{display:none}.login-box{padding:36px 24px}.cabecalho{padding:0 16px}.cabecalho .logo h1{font-size:17px}.barra-lateral{width:100%;display:flex;overflow:auto;padding:10px;border-right:0;border-bottom:1px solid var(--admin-line);gap:5px}.aba-btn{white-space:nowrap;width:auto;margin:0}.corpo{flex-direction:column}.conteudo{padding:20px 16px}.cards-dashboard{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}#painel form{grid-template-columns:1fr}.produto-upload{grid-template-columns:1fr}.upload-preview{height:210px}.produto-admin-item{align-items:flex-start;flex-direction:column}.page-head{align-items:flex-start;flex-direction:column}}
+    @media(max-width:460px){.cards-dashboard{grid-template-columns:1fr}.cabecalho .logo small{display:none}.form-bloco{padding:18px}.page-head h2{font-size:29px}}
   </style>
 </head>
 <body>
 
   <section id="tela-login">
-    <div class="login-box">
-      <img src="../assets/logo.png" alt="Afago Bem-Estar">
-      <h1>Painel Administrativo</h1>
-      <form id="form-login">
-        <input type="email" id="email" placeholder="Seu e-mail" required>
-        <input type="password" id="senha" placeholder="Sua senha" required>
-        <button type="submit">Entrar</button>
-      </form>
+    <div class="login-shell">
+      <div class="login-brand">
+        <img src="../assets/logo.png" alt="Afago Bem-Estar">
+        <span class="eyebrow">Afago Bem-Estar</span>
+        <h1>Painel de<br>cuidado.</h1>
+        <p>Gerencie produtos, massagens, pacotes, agendamentos e mensagens em um só lugar, com a mesma identidade acolhedora da Afago.</p>
+      </div>
+      <div class="login-box">
+        <h2>Bem-vindo de volta</h2>
+        <p class="sub">Entre para acessar o painel administrativo.</p>
+        <form id="form-login">
+          <div class="field"><label for="email">E-mail</label><input type="email" id="email" placeholder="voce@exemplo.com" autocomplete="email" required></div>
+          <div class="field"><label for="senha">Senha</label><input type="password" id="senha" placeholder="Sua senha" autocomplete="current-password" required></div>
+          <button class="btn-primary-admin" type="submit">Entrar no painel</button>
+        </form>
+      </div>
     </div>
   </section>
 
@@ -194,13 +68,13 @@
     <header class="cabecalho">
       <div class="logo">
         <img src="../assets/logo.png" alt="Afago Bem-Estar">
-        <h1>Afago · Painel de Controle</h1>
+        <div><h1>Afago · Painel de Controle</h1><small>Gestão da experiência Afago</small></div>
       </div>
-      <button id="btn-sair">Sair</button>
+      <button class="logout" id="btn-sair">Sair</button>
     </header>
 
     <div class="corpo">
-      <nav class="barra-lateral">
+      <nav class="barra-lateral"><div class="side-title">Menu</div>
         <button class="aba-btn ativa" data-aba="dashboard">📊 Dashboard</button>
         <button class="aba-btn" data-aba="massagens">💆 Massagens</button>
         <button class="aba-btn" data-aba="pacotes">🎁 Pacotes</button>
@@ -212,7 +86,7 @@
       <main class="conteudo">
 
         <div id="aba-dashboard" class="conteudo-aba ativa">
-          <h2>Visão Geral</h2>
+          <div class="page-head"><div><h2>Visão geral</h2><p>Acompanhe o que está acontecendo na Afago.</p></div></div>
           <div class="cards-dashboard">
             <div class="card-dash"><div class="numero" id="qtd-agendamentos">0</div><div class="rotulo">Agendamentos</div></div>
             <div class="card-dash"><div class="numero" id="qtd-contatos">0</div><div class="rotulo">Mensagens</div></div>
@@ -224,9 +98,9 @@
         </div>
 
         <div id="aba-massagens" class="conteudo-aba">
-          <h2>Massagens</h2>
+          <div class="page-head"><div><h2>Massagens</h2><p>Cadastre e atualize os serviços oferecidos.</p></div></div>
           <div class="form-bloco">
-            <h3>Cadastrar / Editar Massagem</h3>
+            <div class="form-top"><div><h3 id="massagemFormTitulo">Adicionar massagem</h3><span>Preencha os dados abaixo.</span></div></div>
             <form id="form-massagem">
               <input type="hidden" id="m-id">
               <input type="text" id="m-cat" placeholder="Categoria (relax / terap / dren)" required>
@@ -235,17 +109,17 @@
               <input type="number" step="0.01" id="m-price" placeholder="Preço R$" required>
               <input type="text" id="m-desc" placeholder="Descrição" required>
               <input type="text" id="m-icon" placeholder="Ícone (icon-touch / icon-flower / icon-leaf / icon-droplet)" required>
-              <button type="submit">Salvar Massagem</button>
+              <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar massagem</button><button class="btn-secondary" type="button" id="btn-cancelar-massagem" style="display:none">Cancelar edição</button></div>
             </form>
           </div>
           <h3>Lista de Massagens</h3>
-          <div id="lista-massagens"></div>
+          <div class="lista" id="lista-massagens"></div>
         </div>
 
         <div id="aba-pacotes" class="conteudo-aba">
-          <h2>Pacotes</h2>
+          <div class="page-head"><div><h2>Pacotes</h2><p>Monte ofertas e pacotes promocionais.</p></div></div>
           <div class="form-bloco">
-            <h3>Cadastrar / Editar Pacote</h3>
+            <div class="form-top"><div><h3 id="pacoteFormTitulo">Adicionar pacote</h3><span>Defina sessões e preço promocional.</span></div></div>
             <form id="form-pacote">
               <input type="hidden" id="p-id">
               <input type="text" id="p-title" placeholder="Nome do Pacote" required>
@@ -256,17 +130,17 @@
               <input type="number" step="0.01" id="p-economia" placeholder="Economia R$">
               <input type="text" id="p-icon" placeholder="Ícone" required>
               <label><input type="checkbox" id="p-destaque"> Em destaque na página inicial</label>
-              <button type="submit">Salvar Pacote</button>
+              <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar pacote</button><button class="btn-secondary" type="button" id="btn-cancelar-pacote" style="display:none">Cancelar edição</button></div>
             </form>
           </div>
           <h3>Lista de Pacotes</h3>
-          <div id="lista-pacotes"></div>
+          <div class="lista" id="lista-pacotes"></div>
         </div>
 
         <div id="aba-produtos" class="conteudo-aba">
-          <h2>Produtos</h2>
+          <div class="page-head"><div><h2>Produtos</h2><p>Cadastre produtos com foto, preço e categoria.</p></div></div>
           <div class="form-bloco">
-            <h3>Cadastrar / Editar Produto</h3>
+            <div class="form-top"><div><h3 id="produtoFormTitulo">Adicionar produto</h3><span>Foto, nome, descrição, categoria e preço.</span></div></div>
             <form id="form-produto">
               <input type="hidden" id="pr-id">
               <input type="text" id="pr-cat" placeholder="Categoria (Sabonetes / Banhos / Óleos)" required>
@@ -274,28 +148,33 @@
               <input type="text" id="pr-desc" placeholder="Descrição" required>
               <input type="number" step="0.01" id="pr-price" placeholder="Preço R$" required>
               <input type="text" id="pr-bg" placeholder="Estilo de fundo (bg-clay / bg-moss / bg-honey / bg-espresso)" required>
-              <input type="text" id="pr-icon" placeholder="Ícone" required>
-              <button type="submit">Salvar Produto</button>
+              <input type="text" id="pr-icon" placeholder="Ícone (ex: icon-flower)" required>
+              <div class="field-full produto-upload">
+                <div class="upload-preview"><img id="produtoImagemPreview" alt="Prévia do produto"><span id="produtoImagemPlaceholder">Escolha uma foto<br>para visualizar aqui</span></div>
+                <div><div class="field"><label for="pr-imagem">Foto do produto</label><div class="file-input"><input type="file" id="pr-imagem" accept="image/*"></div><div class="help">No celular abre a galeria/câmera. No PC, escolha uma imagem do computador. Máximo: 5 MB.</div></div></div>
+              </div>
+              <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar produto</button><button class="btn-secondary" type="button" id="btn-cancelar-produto" style="display:none">Cancelar edição</button></div>
             </form>
           </div>
           <h3>Lista de Produtos</h3>
-          <div id="lista-produtos"></div>
+          <div class="lista" id="lista-produtos"></div>
         </div>
 
         <div id="aba-agendamentos" class="conteudo-aba">
-          <h2>Agendamentos Recebidos</h2>
-          <div id="lista-agendamentos"></div>
+          <div class="page-head"><div><h2>Agendamentos</h2><p>Veja e atualize o status dos atendimentos.</p></div></div>
+          <div class="lista" id="lista-agendamentos"></div>
         </div>
 
         <div id="aba-contatos" class="conteudo-aba">
-          <h2>Mensagens de Contato</h2>
-          <div id="lista-contatos"></div>
+          <div class="page-head"><div><h2>Mensagens</h2><p>Centralize os contatos recebidos pelo site.</p></div></div>
+          <div class="lista" id="lista-contatos"></div>
         </div>
 
       </main>
     </div>
   </div>
 
+  <div id="adminToast" role="status"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="admin.js"></script>
 </body>
