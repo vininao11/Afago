@@ -11,6 +11,110 @@ const esc = valor => String(valor ?? '').replace(/[&<>\'\"]/g, c => ({'&':'&amp;
 
 let produtoImagemAtual = '';
 let produtoImagemNova = '';
+let crudFormBlocks = {};
+let confirmResolver = null;
+
+
+
+function inicializarModais() {
+  crudFormBlocks = {
+    massagem: document.querySelector('#aba-massagens .form-bloco'),
+    pacote: document.querySelector('#aba-pacotes .form-bloco'),
+    produto: document.querySelector('#aba-produtos .form-bloco')
+  };
+
+  document.querySelectorAll('[data-open-form]').forEach(button => {
+    button.addEventListener('click', () => abrirModalCrud(button.dataset.openForm, false));
+  });
+
+  document.querySelectorAll('[data-close-modal]').forEach(button => {
+    button.addEventListener('click', fecharModalCrud);
+  });
+  document.querySelectorAll('[data-close-confirm]').forEach(button => {
+    button.addEventListener('click', () => resolverConfirmacao(false));
+  });
+  document.getElementById('crudModal')?.addEventListener('click', e => {
+    if (e.target.id === 'crudModal') fecharModalCrud();
+  });
+  document.getElementById('confirmModal')?.addEventListener('click', e => {
+    if (e.target.id === 'confirmModal') resolverConfirmacao(false);
+  });
+  document.getElementById('confirmDeleteBtn')?.addEventListener('click', () => resolverConfirmacao(true));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const confirm = document.getElementById('confirmModal');
+      if (confirm?.classList.contains('open')) resolverConfirmacao(false);
+      else if (document.getElementById('crudModal')?.classList.contains('open')) fecharModalCrud();
+    }
+  });
+}
+
+function abrirModalCrud(tipo, edicao = false) {
+  const modal = document.getElementById('crudModal');
+  const body = document.getElementById('modalBody');
+  const block = crudFormBlocks[tipo];
+  if (!modal || !body || !block) return;
+
+  if (!edicao) {
+    if (tipo === 'massagem') resetFormGenerico('massagem');
+    if (tipo === 'pacote') resetFormGenerico('pacote');
+    if (tipo === 'produto') resetProdutoForm();
+  }
+  body.replaceChildren(block);
+  const titulos = {
+    massagem: edicao ? 'Editar massagem' : 'Nova massagem',
+    pacote: edicao ? 'Editar pacote' : 'Novo pacote',
+    produto: edicao ? 'Editar produto' : 'Novo produto'
+  };
+  const subtitulos = {
+    massagem: 'Atualize os dados do serviço e mantenha seu catálogo sempre atual.',
+    pacote: 'Monte uma oferta bonita, clara e pronta para aparecer no site.',
+    produto: 'Cadastre nome, preço, categoria e escolha uma foto da galeria.'
+  };
+  document.getElementById('modalTitle').textContent = titulos[tipo] || 'Editar item';
+  document.getElementById('modalSubtitle').textContent = subtitulos[tipo] || 'Atualize os dados e salve as alterações.';
+  const submit = block.querySelector('button[type=submit]');
+  if (submit) submit.textContent = edicao ? `Salvar alterações` : `Criar ${tipo === 'massagem' ? 'massagem' : tipo === 'pacote' ? 'pacote' : 'produto'}`;
+  modal.dataset.tipo = tipo;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+  requestAnimationFrame(() => {
+    const first = block.querySelector('input:not([type=hidden]), select, textarea');
+    first?.focus({preventScroll:true});
+  });
+}
+
+function fecharModalCrud() {
+  const modal = document.getElementById('crudModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+}
+
+function pedirConfirmacao(nome) {
+  return new Promise(resolve => {
+    confirmResolver = resolve;
+    document.getElementById('confirmTitle').textContent = `Excluir “${nome}”?`;
+    document.getElementById('confirmText').textContent = 'O item será removido do catálogo e essa ação não poderá ser desfeita.';
+    const modal = document.getElementById('confirmModal');
+    modal?.classList.add('open');
+    modal?.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+  });
+}
+
+function resolverConfirmacao(valor) {
+  const modal = document.getElementById('confirmModal');
+  modal?.classList.remove('open');
+  modal?.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+  const resolve = confirmResolver;
+  confirmResolver = null;
+  resolve?.(valor);
+}
 
 function avisar(texto, tipo = 'info') {
   const el = document.getElementById('adminToast');
@@ -57,7 +161,6 @@ function preencherProduto(p) {
   atualizarPreviewProduto(produtoImagemAtual);
   document.getElementById('produtoFormTitulo').textContent = 'Editar produto';
   document.getElementById('btn-cancelar-produto').style.display = 'inline-flex';
-  document.getElementById('aba-produtos').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function atualizarPreviewProduto(url) {
@@ -110,6 +213,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   configurarNavegacao();
   configurarFormulariosCRUD();
   configurarUploadProduto();
+  inicializarModais();
   await verificarLogin();
 });
 
@@ -192,6 +296,7 @@ async function carregarMassagens() {
   const lista = document.getElementById('lista-massagens');
   if (!lista) return;
   if (error) { console.error(error); lista.innerHTML = '<div class="empty-state">Erro ao carregar massagens.</div>'; return; }
+  const count = document.getElementById('count-massagens'); if (count) count.textContent = data?.length || 0;
   lista.innerHTML = (data || []).map(m => `<div class="item-lista"><div><strong>${esc(m.title)}</strong><span class="price-mini">${dinheiro(m.price)}</span></div><small>${esc(m.cat)} · ${esc(m.duration)} · ${esc(m.descricao)}</small><div class="acoes"><button class="btn-ghost editar" data-edit-massagem="${esc(m.id)}">Editar</button><button class="btn-ghost excluir" data-delete="massagens" data-id="${esc(m.id)}" data-name="${esc(m.title)}">Excluir</button></div></div>`).join('') || '<div class="empty-state">Nenhuma massagem cadastrada.</div>';
   lista.querySelectorAll('[data-edit-massagem]').forEach(b => b.addEventListener('click', () => editarMassagem(b.dataset.editMassagem)));
   lista.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', () => excluirRegistro(b.dataset.delete, b.dataset.id, b.dataset.name)));
@@ -202,6 +307,7 @@ async function carregarPacotes() {
   const lista = document.getElementById('lista-pacotes');
   if (!lista) return;
   if (error) { console.error(error); lista.innerHTML = '<div class="empty-state">Erro ao carregar pacotes.</div>'; return; }
+  const count = document.getElementById('count-pacotes'); if (count) count.textContent = data?.length || 0;
   lista.innerHTML = (data || []).map(p => `<div class="item-lista"><div><strong>${esc(p.title)}</strong><span class="price-mini">${dinheiro(p.por)}</span></div><small>${esc(p.sessoes)} · ${esc(p.duracao)}${p.featured ? ' · Destaque' : ''}</small><div class="acoes"><button class="btn-ghost editar" data-edit-pacote="${esc(p.id)}">Editar</button><button class="btn-ghost excluir" data-delete="pacotes" data-id="${esc(p.id)}" data-name="${esc(p.title)}">Excluir</button></div></div>`).join('') || '<div class="empty-state">Nenhum pacote cadastrado.</div>';
   lista.querySelectorAll('[data-edit-pacote]').forEach(b => b.addEventListener('click', () => editarPacote(b.dataset.editPacote)));
   lista.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', () => excluirRegistro(b.dataset.delete, b.dataset.id, b.dataset.name)));
@@ -212,6 +318,7 @@ async function carregarProdutos() {
   const lista = document.getElementById('lista-produtos');
   if (!lista) return;
   if (error) { console.error(error); lista.innerHTML = '<div class="empty-state">Erro ao carregar produtos. Verifique as permissões da tabela no Supabase.</div>'; return; }
+  const count = document.getElementById('count-produtos'); if (count) count.textContent = data?.length || 0;
   lista.innerHTML = (data || []).map(p => {
     const img = p.imagem || p.image_url || '';
     return `<div class="item-lista produto-admin-item"><div class="produto-admin-main">${img ? `<img src="${esc(img)}" alt="">` : '<div class="produto-thumb-placeholder">✦</div>'}<div><div><strong>${esc(p.title)}</strong><span class="price-mini">${dinheiro(p.price)}</span></div><small>${esc(p.cat)} · ${esc(p.descricao)}</small></div></div><div class="acoes"><button class="btn-ghost editar" data-edit-produto="${esc(p.id)}">Editar</button><button class="btn-ghost excluir" data-delete="produtos" data-id="${esc(p.id)}" data-name="${esc(p.title)}">Excluir</button></div></div>`;
@@ -245,9 +352,9 @@ function configurarFormulariosCRUD() {
   document.getElementById('form-massagem')?.addEventListener('submit', salvarMassagem);
   document.getElementById('form-pacote')?.addEventListener('submit', salvarPacote);
   document.getElementById('form-produto')?.addEventListener('submit', salvarProduto);
-  document.getElementById('btn-cancelar-massagem')?.addEventListener('click', () => resetFormGenerico('massagem'));
-  document.getElementById('btn-cancelar-pacote')?.addEventListener('click', () => resetFormGenerico('pacote'));
-  document.getElementById('btn-cancelar-produto')?.addEventListener('click', resetProdutoForm);
+  document.getElementById('btn-cancelar-massagem')?.addEventListener('click', () => { resetFormGenerico('massagem'); fecharModalCrud(); });
+  document.getElementById('btn-cancelar-pacote')?.addEventListener('click', () => { resetFormGenerico('pacote'); fecharModalCrud(); });
+  document.getElementById('btn-cancelar-produto')?.addEventListener('click', () => { resetProdutoForm(); fecharModalCrud(); });
 }
 
 function resetFormGenerico(tipo) {
@@ -271,9 +378,8 @@ async function editarMassagem(id) {
   document.getElementById('m-price').value = data.price ?? '';
   document.getElementById('m-desc').value = data.descricao || '';
   document.getElementById('m-icon').value = data.icon || 'icon-touch';
-  document.getElementById('massagemFormTitulo').textContent = 'Editar massagem';
   document.getElementById('btn-cancelar-massagem').style.display = 'inline-flex';
-  document.getElementById('aba-massagens').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  abrirModalCrud('massagem', true);
 }
 
 async function editarPacote(id) {
@@ -288,15 +394,15 @@ async function editarPacote(id) {
   document.getElementById('p-economia').value = data.economia ?? '';
   document.getElementById('p-icon').value = data.icon || 'icon-flower';
   document.getElementById('p-destaque').checked = !!data.featured;
-  document.getElementById('pacoteFormTitulo').textContent = 'Editar pacote';
   document.getElementById('btn-cancelar-pacote').style.display = 'inline-flex';
-  document.getElementById('aba-pacotes').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  abrirModalCrud('pacote', true);
 }
 
 async function editarProduto(id) {
   const { data, error } = await supabaseClient.from('produtos').select('*').eq('id', id).single();
   if (error) return avisar('Não foi possível abrir o produto.', 'error');
   preencherProduto(data);
+  abrirModalCrud('produto', true);
 }
 
 function configurarUploadProduto() {
@@ -314,14 +420,14 @@ async function salvarMassagem(e) {
   e.preventDefault();
   const id = document.getElementById('m-id').value;
   const payload = { cat: document.getElementById('m-cat').value.trim(), title: document.getElementById('m-title').value.trim(), duration: document.getElementById('m-duration').value.trim(), price: Number(document.getElementById('m-price').value), descricao: document.getElementById('m-desc').value.trim(), icon: document.getElementById('m-icon').value.trim() };
-  if (await salvarRegistro('massagens', id, payload, 'Massagem')) { resetFormGenerico('massagem'); carregarMassagens(); carregarDashboard(); }
+  if (await salvarRegistro('massagens', id, payload, 'Massagem')) { resetFormGenerico('massagem'); fecharModalCrud(); carregarMassagens(); carregarDashboard(); }
 }
 
 async function salvarPacote(e) {
   e.preventDefault();
   const id = document.getElementById('p-id').value;
   const payload = { title: document.getElementById('p-title').value.trim(), sessoes: document.getElementById('p-sessoes').value.trim(), duracao: document.getElementById('p-duracao').value.trim(), de: valorOuNull('p-de'), por: Number(document.getElementById('p-por').value), economia: valorOuNull('p-economia'), icon: document.getElementById('p-icon').value.trim(), featured: document.getElementById('p-destaque').checked };
-  if (await salvarRegistro('pacotes', id, payload, 'Pacote')) { resetFormGenerico('pacote'); carregarPacotes(); carregarDashboard(); }
+  if (await salvarRegistro('pacotes', id, payload, 'Pacote')) { resetFormGenerico('pacote'); fecharModalCrud(); carregarPacotes(); carregarDashboard(); }
 }
 
 async function salvarProduto(e) {
@@ -338,7 +444,7 @@ async function salvarProduto(e) {
     const payload = { cat: document.getElementById('pr-cat').value.trim(), title: document.getElementById('pr-title').value.trim(), descricao: document.getElementById('pr-desc').value.trim(), price: Number(document.getElementById('pr-price').value), bg: document.getElementById('pr-bg').value.trim() || 'bg-clay', icon: document.getElementById('pr-icon').value.trim() || 'icon-flower' };
     if (imagem) payload.imagem = imagem;
     const ok = await salvarProdutoComImagem('produtos', id, payload);
-    if (ok) { resetProdutoForm(); carregarProdutos(); carregarDashboard(); }
+    if (ok) { resetProdutoForm(); fecharModalCrud(); carregarProdutos(); carregarDashboard(); }
   } catch (error) {
     console.error(error);
     avisar(error.message || 'Não foi possível salvar o produto.', 'error');
@@ -380,7 +486,8 @@ async function salvarRegistro(tabela, id, payload, nome) {
 }
 
 async function excluirRegistro(tabela, id, nome) {
-  if (!confirm(`Excluir "${nome}"? Essa ação não pode ser desfeita.`)) return;
+  const confirmou = await pedirConfirmacao(nome);
+  if (!confirmou) return;
   const { error } = await supabaseClient.from(tabela).delete().eq('id', id);
   if (error) {
     console.error(`Erro ao excluir ${tabela}:`, error);
