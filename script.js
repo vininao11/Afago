@@ -266,6 +266,14 @@ function configurarContato() {
   });
 }
 
+function configurarMenuScroll() {
+  const nav = document.getElementById("siteNav");
+  if (!nav) return;
+  const atualizar = () => nav.classList.toggle("is-scrolled", window.scrollY > 8);
+  atualizar();
+  window.addEventListener("scroll", atualizar, { passive: true });
+}
+
 function configurarNavegacao() {
   const abrirView = view => {
     const destino = document.getElementById(`view-${view}`) || document.getElementById("view-inicio");
@@ -412,6 +420,7 @@ function configurarRevelacoes() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   configurarNavegacao();
+  configurarMenuScroll();
   configurarCarrinho();
   configurarBooking();
   configurarContato();
