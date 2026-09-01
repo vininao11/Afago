@@ -1,6 +1,9 @@
 const SUPABASE_URL = "https://sybomoikpbswfpplheve.supabase.co";
 const SUPABASE_KEY = "sb_publishable_a20Xy8dj13ahVvPN_TcnNg_DrJaGVrp";
 const STORAGE_BUCKET = "produtos";
+const LOGIN_ATTEMPTS_KEY = "afago_login_attempts";
+const MUST_CHANGE_PASSWORD_KEY = "afago_must_change_password";
+const MAX_LOGIN_ATTEMPTS = 5;
 
 const supabaseClient = window.supabase?.createClient
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
@@ -13,6 +16,119 @@ let produtoImagemAtual = '';
 let produtoImagemNova = '';
 let crudFormBlocks = {};
 let confirmResolver = null;
+
+function normalizarEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+function lerTentativasLogin() {
+  try {
+    return JSON.parse(localStorage.getItem(LOGIN_ATTEMPTS_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function salvarTentativasLogin(data) {
+  localStorage.setItem(LOGIN_ATTEMPTS_KEY, JSON.stringify(data));
+}
+
+function registrarFalhaLogin(email) {
+  const data = lerTentativasLogin();
+  const chave = normalizarEmail(email);
+  const atual = data[chave] || { count: 0 };
+  atual.count += 1;
+  atual.at = Date.now();
+  data[chave] = atual;
+  salvarTentativasLogin(data);
+  return atual;
+}
+
+function limparTentativasLogin(email) {
+  const data = lerTentativasLogin();
+  delete data[normalizarEmail(email)];
+  salvarTentativasLogin(data);
+}
+
+function marcarTrocaSenha(ativo) {
+  if (ativo) localStorage.setItem(MUST_CHANGE_PASSWORD_KEY, '1');
+  else localStorage.removeItem(MUST_CHANGE_PASSWORD_KEY);
+}
+
+function precisaTrocarSenha() {
+  return localStorage.getItem(MUST_CHANGE_PASSWORD_KEY) === '1';
+}
+
+function mostrarAvisoLogin(texto, tipo = '') {
+  const el = document.getElementById('login-aviso');
+  if (!el) return avisar(texto, tipo === 'erro' ? 'error' : tipo === 'ok' ? 'success' : 'info');
+  el.hidden = false;
+  el.className = `login-aviso${tipo ? ` ${tipo}` : ''}`;
+  el.innerHTML = texto;
+}
+
+function esconderAvisoLogin() {
+  const el = document.getElementById('login-aviso');
+  if (!el) return;
+  el.hidden = true;
+  el.textContent = '';
+}
+
+function textoPassoAPasso(email) {
+  return `
+    Enviamos o passo a passo para <strong>${esc(email)}</strong>.
+    <ol class="login-steps">
+      <li>Abra a caixa de entrada (e o spam) do e-mail cadastrado.</li>
+      <li>Use o link de acesso provisório enviado pela Afago.</li>
+      <li>Entre no painel com esse acesso temporário.</li>
+      <li>Em Configurações, troque a senha imediatamente.</li>
+    </ol>`;
+}
+
+function urlRedirecionamentoAdmin() {
+  return `${location.origin}${location.pathname}`;
+}
+
+async function enviarRecuperacaoSenha(email) {
+  const destino = normalizarEmail(email);
+  if (!destino) throw new Error('Informe o e-mail cadastrado.');
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(destino, {
+    redirectTo: urlRedirecionamentoAdmin()
+  });
+  if (error) throw error;
+  marcarTrocaSenha(true);
+  limparTentativasLogin(destino);
+  return destino;
+}
+
+function alternarFormLogin(modo) {
+  const login = document.getElementById('form-login');
+  const recuperar = document.getElementById('form-recuperar');
+  login?.classList.toggle('ativa', modo === 'login');
+  if (recuperar) recuperar.style.display = modo === 'recuperar' ? 'block' : 'none';
+  if (login) login.style.display = modo === 'login' ? 'block' : 'none';
+}
+
+function irParaAba(aba) {
+  const btn = document.querySelector(`.aba-btn[data-aba="${aba}"]`);
+  btn?.click();
+}
+
+function atualizarBannerSenha() {
+  const banner = document.getElementById('aviso-senha');
+  if (!banner) return;
+  banner.classList.toggle('show', precisaTrocarSenha());
+}
+
+function preencherConfiguracoes() {
+  supabaseClient.auth.getUser().then(({ data }) => {
+    const atual = data?.user?.email || '';
+    const el = document.getElementById('config-email-atual');
+    if (el) el.textContent = atual || 'Não foi possível carregar o e-mail.';
+    const input = document.getElementById('config-email');
+    if (input && atual) input.placeholder = atual;
+  }).catch(() => {});
+}
 
 
 
@@ -50,6 +166,25 @@ function inicializarModais() {
   });
 }
 
+function abaDoTipo(tipo) {
+  if (tipo === 'produto') return 'aba-produtos';
+  if (tipo === 'pacote') return 'aba-pacotes';
+  if (tipo === 'massagem') return 'aba-massagens';
+  return '';
+}
+
+function devolverFormularioModal() {
+  const modal = document.getElementById('crudModal');
+  const body = document.getElementById('modalBody');
+  const block = body?.firstElementChild;
+  if (!modal || !block) return;
+  const aba = document.getElementById(abaDoTipo(modal.dataset.tipo));
+  if (!aba) return;
+  const ancora = aba.querySelector('.lista-head');
+  if (ancora) aba.insertBefore(block, ancora);
+  else aba.appendChild(block);
+}
+
 function abrirModalCrud(tipo, edicao = false) {
   const modal = document.getElementById('crudModal');
   const body = document.getElementById('modalBody');
@@ -61,7 +196,8 @@ function abrirModalCrud(tipo, edicao = false) {
     if (tipo === 'pacote') resetFormGenerico('pacote');
     if (tipo === 'produto') resetProdutoForm();
   }
-  body.replaceChildren(block);
+  devolverFormularioModal();
+  body.appendChild(block);
   const titulos = {
     massagem: edicao ? 'Editar massagem' : 'Nova massagem',
     pacote: edicao ? 'Editar pacote' : 'Novo pacote',
@@ -89,6 +225,7 @@ function abrirModalCrud(tipo, edicao = false) {
 function fecharModalCrud() {
   const modal = document.getElementById('crudModal');
   if (!modal) return;
+  devolverFormularioModal();
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('modal-open');
@@ -141,6 +278,8 @@ function resetProdutoForm() {
   document.getElementById('pr-id').value = '';
   document.getElementById('pr-bg').value = 'bg-clay';
   document.getElementById('pr-icon').value = 'icon-flower';
+  const oculto = document.getElementById('pr-oculto');
+  if (oculto) oculto.checked = false;
   produtoImagemAtual = '';
   produtoImagemNova = '';
   atualizarPreviewProduto('');
@@ -156,6 +295,8 @@ function preencherProduto(p) {
   document.getElementById('pr-price').value = p.price ?? '';
   document.getElementById('pr-bg').value = p.bg ?? 'bg-clay';
   document.getElementById('pr-icon').value = p.icon ?? 'icon-flower';
+  const oculto = document.getElementById('pr-oculto');
+  if (oculto) oculto.checked = produtoEstaOculto(p);
   produtoImagemAtual = p.imagem || p.image_url || '';
   produtoImagemNova = '';
   atualizarPreviewProduto(produtoImagemAtual);
@@ -213,7 +354,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   configurarNavegacao();
   configurarFormulariosCRUD();
   configurarUploadProduto();
+  configurarConta();
   inicializarModais();
+  observarSessao();
   await verificarLogin();
 });
 
@@ -223,36 +366,102 @@ async function verificarLogin() {
   if (data?.session) mostrarPainel();
 }
 
+function observarSessao() {
+  supabaseClient.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      marcarTrocaSenha(true);
+      mostrarPainel();
+      irParaAba('configuracoes');
+      avisar('Acesso provisório confirmado. Troque sua senha em Configurações.', 'success');
+    }
+  });
+}
+
 function configurarFormularioLogin() {
   const form = document.getElementById('form-login');
+  const formRecuperar = document.getElementById('form-recuperar');
+
   form?.addEventListener('submit', async e => {
     e.preventDefault();
+    esconderAvisoLogin();
     const button = form.querySelector('button[type=submit]');
-    if (button) { button.disabled = true; button.textContent = 'Entrando...'; }
     const email = document.getElementById('email').value.trim();
     const senha = document.getElementById('senha').value;
+    if (button) { button.disabled = true; button.textContent = 'Entrando...'; }
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
     if (error) {
       console.error('Erro de login:', error);
-      avisar(error.message?.includes('Invalid login') ? 'E-mail ou senha incorretos.' : `Não foi possível entrar: ${error.message}`, 'error');
-      if (button) { button.disabled = false; button.textContent = 'Entrar'; }
+      const tentativas = registrarFalhaLogin(email);
+      const restantes = Math.max(0, MAX_LOGIN_ATTEMPTS - tentativas.count);
+      if (tentativas.count >= MAX_LOGIN_ATTEMPTS) {
+        try {
+          await enviarRecuperacaoSenha(email);
+          mostrarAvisoLogin(`Por segurança, após ${MAX_LOGIN_ATTEMPTS} tentativas enviamos um acesso provisório ao e-mail cadastrado.${textoPassoAPasso(email)}`, 'ok');
+        } catch (envioError) {
+          console.error('Recuperação automática:', envioError);
+          mostrarAvisoLogin('Limite de tentativas atingido. Use “Esqueci minha senha” para receber o passo a passo no e-mail.', 'erro');
+        }
+      } else {
+        const msg = error.message?.includes('Invalid login') ? 'E-mail ou senha incorretos.' : `Não foi possível entrar: ${error.message}`;
+        mostrarAvisoLogin(`${msg} Restam ${restantes} tentativa${restantes === 1 ? '' : 's'} antes do envio da senha provisória.`, 'erro');
+        avisar(msg, 'error');
+      }
+      if (button) { button.disabled = false; button.textContent = 'Entrar no painel'; }
       return;
     }
-    if (button) { button.disabled = false; button.textContent = 'Entrar'; }
+    limparTentativasLogin(email);
+    if (button) { button.disabled = false; button.textContent = 'Entrar no painel'; }
     mostrarPainel();
+  });
+
+  document.getElementById('btn-esqueci-senha')?.addEventListener('click', () => {
+    esconderAvisoLogin();
+    const email = document.getElementById('email')?.value.trim();
+    const campo = document.getElementById('email-recuperar');
+    if (campo && email) campo.value = email;
+    alternarFormLogin('recuperar');
+  });
+
+  document.getElementById('btn-voltar-login')?.addEventListener('click', () => {
+    esconderAvisoLogin();
+    alternarFormLogin('login');
+  });
+
+  formRecuperar?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const button = formRecuperar.querySelector('button[type=submit]');
+    const email = document.getElementById('email-recuperar').value.trim();
+    if (button) { button.disabled = true; button.textContent = 'Enviando...'; }
+    try {
+      await enviarRecuperacaoSenha(email);
+      mostrarAvisoLogin(`Pronto. ${textoPassoAPasso(email)}`, 'ok');
+      avisar('Instruções enviadas para o e-mail cadastrado.', 'success');
+    } catch (error) {
+      console.error('Esqueci a senha:', error);
+      mostrarAvisoLogin(error.message || 'Não foi possível enviar o e-mail de recuperação.', 'erro');
+    } finally {
+      if (button) { button.disabled = false; button.textContent = 'Enviar senha provisória'; }
+    }
   });
 
   document.getElementById('btn-sair')?.addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
     document.getElementById('tela-login').style.display = 'flex';
     document.getElementById('painel').style.display = 'none';
+    esconderAvisoLogin();
+    alternarFormLogin('login');
   });
+
+  document.getElementById('btn-ir-configuracoes')?.addEventListener('click', () => irParaAba('configuracoes'));
 }
 
 function mostrarPainel() {
   document.getElementById('tela-login').style.display = 'none';
   document.getElementById('painel').style.display = 'flex';
+  atualizarBannerSenha();
+  preencherConfiguracoes();
   carregarDashboard();
+  if (precisaTrocarSenha()) irParaAba('configuracoes');
 }
 
 function configurarNavegacao() {
@@ -269,7 +478,51 @@ function configurarNavegacao() {
       if (aba === 'produtos') carregarProdutos();
       if (aba === 'agendamentos') carregarAgendamentos();
       if (aba === 'contatos') carregarContatos();
+      if (aba === 'configuracoes') preencherConfiguracoes();
     });
+  });
+}
+
+function produtoEstaOculto(p) {
+  return p?.oculto === true || p?.hidden === true || p?.visivel === false;
+}
+
+function configurarConta() {
+  document.getElementById('form-email')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const button = e.target.querySelector('button[type=submit]');
+    const email = document.getElementById('config-email').value.trim();
+    if (!email) return avisar('Informe o novo e-mail.', 'error');
+    if (button) { button.disabled = true; button.textContent = 'Salvando...'; }
+    const { error } = await supabaseClient.auth.updateUser({ email });
+    if (button) { button.disabled = false; button.textContent = 'Atualizar e-mail'; }
+    if (error) {
+      console.error(error);
+      return avisar(error.message || 'Não foi possível atualizar o e-mail.', 'error');
+    }
+    document.getElementById('config-email').value = '';
+    preencherConfiguracoes();
+    avisar('E-mail atualizado. Se o Supabase pedir confirmação, verifique a caixa de entrada.', 'success');
+  });
+
+  document.getElementById('form-senha')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const nova = document.getElementById('config-senha-nova').value;
+    const confirma = document.getElementById('config-senha-confirma').value;
+    if (nova.length < 6) return avisar('A senha precisa ter pelo menos 6 caracteres.', 'error');
+    if (nova !== confirma) return avisar('A confirmação da senha não confere.', 'error');
+    const button = e.target.querySelector('button[type=submit]');
+    if (button) { button.disabled = true; button.textContent = 'Salvando...'; }
+    const { error } = await supabaseClient.auth.updateUser({ password: nova });
+    if (button) { button.disabled = false; button.textContent = 'Salvar nova senha'; }
+    if (error) {
+      console.error(error);
+      return avisar(error.message || 'Não foi possível atualizar a senha.', 'error');
+    }
+    document.getElementById('form-senha').reset();
+    marcarTrocaSenha(false);
+    atualizarBannerSenha();
+    avisar('Senha atualizada com sucesso.', 'success');
   });
 }
 
@@ -321,9 +574,11 @@ async function carregarProdutos() {
   const count = document.getElementById('count-produtos'); if (count) count.textContent = data?.length || 0;
   lista.innerHTML = (data || []).map(p => {
     const img = p.imagem || p.image_url || '';
-    return `<div class="item-lista produto-admin-item"><div class="produto-admin-main">${img ? `<img src="${esc(img)}" alt="">` : '<div class="produto-thumb-placeholder">✦</div>'}<div><div><strong>${esc(p.title)}</strong><span class="price-mini">${dinheiro(p.price)}</span></div><small>${esc(p.cat)} · ${esc(p.descricao)}</small></div></div><div class="acoes"><button class="btn-ghost editar" data-edit-produto="${esc(p.id)}">Editar</button><button class="btn-ghost excluir" data-delete="produtos" data-id="${esc(p.id)}" data-name="${esc(p.title)}">Excluir</button></div></div>`;
+    const oculto = produtoEstaOculto(p);
+    return `<div class="item-lista produto-admin-item${oculto ? ' is-oculto' : ''}"><div class="produto-admin-main">${img ? `<img src="${esc(img)}" alt="">` : '<div class="produto-thumb-placeholder">✦</div>'}<div><div><strong>${esc(p.title)}</strong>${oculto ? '<span class="pill oculto">Oculto</span>' : ''}<span class="price-mini">${dinheiro(p.price)}</span></div><small>${esc(p.cat)} · ${esc(p.descricao)}</small></div></div><div class="acoes"><button class="btn-ghost editar" data-edit-produto="${esc(p.id)}">Editar</button><button class="btn-ghost ocultar" data-toggle-produto="${esc(p.id)}" data-oculto="${oculto ? '1' : '0'}">${oculto ? 'Mostrar no site' : 'Ocultar do site'}</button><button class="btn-ghost excluir" data-delete="produtos" data-id="${esc(p.id)}" data-name="${esc(p.title)}">Excluir</button></div></div>`;
   }).join('') || '<div class="empty-state">Nenhum produto cadastrado.</div>';
   lista.querySelectorAll('[data-edit-produto]').forEach(b => b.addEventListener('click', async () => editarProduto(b.dataset.editProduto)));
+  lista.querySelectorAll('[data-toggle-produto]').forEach(b => b.addEventListener('click', () => alternarVisibilidadeProduto(b.dataset.toggleProduto, b.dataset.oculto === '1')));
   lista.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', () => excluirRegistro(b.dataset.delete, b.dataset.id, b.dataset.name)));
 }
 
@@ -441,7 +696,7 @@ async function salvarProduto(e) {
       avisar('Enviando foto...');
       imagem = await salvarProdutoImagemSeNecessario();
     }
-    const payload = { cat: document.getElementById('pr-cat').value.trim(), title: document.getElementById('pr-title').value.trim(), descricao: document.getElementById('pr-desc').value.trim(), price: Number(document.getElementById('pr-price').value), bg: document.getElementById('pr-bg').value.trim() || 'bg-clay', icon: document.getElementById('pr-icon').value.trim() || 'icon-flower' };
+    const payload = { cat: document.getElementById('pr-cat').value.trim(), title: document.getElementById('pr-title').value.trim(), descricao: document.getElementById('pr-desc').value.trim(), price: Number(document.getElementById('pr-price').value), bg: document.getElementById('pr-bg').value.trim() || 'bg-clay', icon: document.getElementById('pr-icon').value.trim() || 'icon-flower', oculto: !!document.getElementById('pr-oculto')?.checked };
     if (imagem) payload.imagem = imagem;
     const ok = await salvarProdutoComImagem('produtos', id, payload);
     if (ok) { resetProdutoForm(); fecharModalCrud(); carregarProdutos(); carregarDashboard(); }
@@ -453,20 +708,49 @@ async function salvarProduto(e) {
   }
 }
 
+function payloadSemColuna(payload, coluna) {
+  const copia = { ...payload };
+  delete copia[coluna];
+  return copia;
+}
+
 async function salvarProdutoComImagem(tabela, id, payload) {
-  let resposta = id ? await supabaseClient.from(tabela).update(payload).eq('id', id) : await supabaseClient.from(tabela).insert([payload]);
+  let atual = { ...payload };
+  let resposta = id ? await supabaseClient.from(tabela).update(atual).eq('id', id) : await supabaseClient.from(tabela).insert([atual]);
   if (!resposta.error) { avisar(id ? 'Produto atualizado com sucesso.' : 'Produto adicionado com sucesso.', 'success'); return true; }
 
   const mensagem = resposta.error.message || '';
-  if (payload.imagem && /imagem|image_url|column/i.test(mensagem)) {
-    const alternativa = { ...payload, imagem: undefined };
-    delete alternativa.imagem;
-    resposta = id ? await supabaseClient.from(tabela).update({ ...alternativa, image_url: payload.imagem }).eq('id', id) : await supabaseClient.from(tabela).insert([{ ...alternativa, image_url: payload.imagem }]);
+  if (/oculto|hidden|column/i.test(mensagem) && 'oculto' in atual) {
+    atual = payloadSemColuna(atual, 'oculto');
+    avisar('Produto salvo, mas a coluna "oculto" ainda não existe no Supabase. Veja SUPABASE_SETUP.md.', 'error');
+    resposta = id ? await supabaseClient.from(tabela).update(atual).eq('id', id) : await supabaseClient.from(tabela).insert([atual]);
+    if (!resposta.error) return true;
+  }
+  if (atual.imagem && /imagem|image_url|column/i.test(resposta.error?.message || mensagem)) {
+    const alternativa = payloadSemColuna(atual, 'imagem');
+    alternativa.image_url = atual.imagem;
+    resposta = id ? await supabaseClient.from(tabela).update(alternativa).eq('id', id) : await supabaseClient.from(tabela).insert([alternativa]);
     if (!resposta.error) { avisar(id ? 'Produto atualizado com sucesso.' : 'Produto adicionado com sucesso.', 'success'); return true; }
   }
   console.error('Erro ao salvar produto:', resposta.error);
   avisar(`Não foi possível salvar o produto: ${resposta.error.message}`, 'error');
   return false;
+}
+
+async function alternarVisibilidadeProduto(id, jaOculto) {
+  const oculto = !jaOculto;
+  const { error } = await supabaseClient.from('produtos').update({ oculto }).eq('id', id);
+  if (error) {
+    console.error(error);
+    if (/oculto|column/i.test(error.message || '')) {
+      avisar('Crie a coluna "oculto" na tabela produtos do Supabase para usar essa função. Veja SUPABASE_SETUP.md.', 'error');
+    } else {
+      avisar('Não foi possível alterar a visibilidade do produto.', 'error');
+    }
+    return;
+  }
+  avisar(oculto ? 'Produto ocultado do site.' : 'Produto visível no site novamente.', 'success');
+  carregarProdutos();
 }
 
 function valorOuNull(id) {

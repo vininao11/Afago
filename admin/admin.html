@@ -77,6 +77,66 @@
     @media(max-width:760px){.cabecalho{padding:0 16px}.barra-lateral{width:100%;padding:10px;gap:4px}.aba-btn{padding:11px 12px}.conteudo{padding:24px 16px 50px}.page-head{align-items:flex-start;gap:16px}.btn-add{width:100%}.modal-overlay{padding:10px}.modal-card{max-height:94vh;border-radius:21px}.modal-head{padding:22px 20px 17px}.modal-body{padding:20px}.confirm-card{padding:28px 22px}.confirm-actions{flex-direction:column-reverse}.confirm-actions button{width:100%}}
     @media(max-width:460px){.cards-dashboard{grid-template-columns:1fr}.page-head h2{font-size:31px}.modal-head h3{font-size:25px}.produto-admin-item{gap:12px}.produto-admin-main{width:100%}.produto-admin-item .acoes{width:100%}.produto-admin-item .acoes button{flex:1}}
 
+    body.modal-open{overflow:hidden}
+    .login-actions{display:flex;flex-direction:column;gap:12px}
+    .login-extra{display:flex;justify-content:flex-end;margin:-6px 0 18px}
+    .link-btn{border:0;background:none;padding:0;color:var(--admin-clay);font-weight:800;font-size:13px}
+    .link-btn:hover{text-decoration:underline}
+    .login-aviso{margin:14px 0 0;padding:12px 14px;border-radius:12px;background:#f7eee6;color:#6d5346;font-size:13px;line-height:1.55}
+    .login-aviso.erro{background:#fae7e4;color:#8f3d32}
+    .login-aviso.ok{background:#eef3e6;color:#425438}
+    .login-aviso ol,.login-steps{margin:10px 0 0;padding-left:22px;font-size:12px;line-height:1.65;color:#6d5346;list-style:decimal}
+    #form-recuperar{display:none}
+    #form-recuperar.ativa,#form-login.ativa{display:block}
+    #form-login{display:block}
+    .btn-full{width:100%}
+    #aba-massagens>.form-bloco,#aba-pacotes>.form-bloco,#aba-produtos>.form-bloco{display:none}
+    .aviso-banner{display:none;align-items:center;justify-content:space-between;gap:16px;margin:0 0 24px;padding:14px 16px;border-radius:16px;background:#fff4e4;border:1px solid #ead2b0;color:#6a4b2a}
+    .aviso-banner.show{display:flex}
+    .aviso-banner p{margin:0;font-size:13px;line-height:1.5;font-weight:700}
+    .aviso-banner button{flex-shrink:0}
+    .item-lista.is-oculto{opacity:.62;background:#f6f1ea}
+    .pill.oculto{background:#ece4db;color:#6b5b4e}
+    .btn-ghost.ocultar{color:#65734a}
+    .btn-ghost.ocultar:hover{background:#eef3e6;border-color:#c9d4b8}
+    .check-row{display:flex;align-items:flex-start;gap:10px;grid-column:1/-1;margin:2px 0 4px;padding:12px 14px;border:1px solid var(--admin-line);border-radius:14px;background:#fffdfa;color:var(--admin-espresso);font-size:13px;font-weight:700;line-height:1.45}
+    .check-row input{margin-top:2px;accent-color:var(--admin-clay);width:16px;height:16px;flex-shrink:0}
+    .check-row span{display:block;font-weight:600;color:var(--admin-muted);font-size:12px;margin-top:2px}
+    #painel form.admin-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 18px;width:100%;min-width:0;align-items:start}
+    .admin-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 18px;width:100%;min-width:0}
+    .admin-form .field{margin:0;min-width:0}
+    .admin-form .field label{display:block;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#6f6258;margin:0 0 8px}
+    .admin-form .field input,.admin-form .field select,.admin-form .field textarea,.modal-body .admin-form .field input,.modal-body .admin-form .field select,.modal-body .admin-form .field textarea{width:100%;max-width:100%;min-width:0;box-sizing:border-box;appearance:none;-webkit-appearance:none;border:1px solid var(--admin-line);background:#fff;padding:13px 14px;border-radius:14px;color:var(--admin-ink);outline:none;min-height:48px;line-height:1.4;margin:0}
+    .admin-form .field textarea{min-height:110px;resize:vertical}
+    .admin-form .field input:focus,.admin-form .field select:focus,.admin-form .field textarea:focus{border-color:var(--admin-clay);box-shadow:0 0 0 4px rgba(168,92,59,.12)}
+    .admin-form .field-full,.admin-form .form-actions,.admin-form .produto-upload,.admin-form .check-row{grid-column:1/-1}
+    .admin-form .form-actions{margin-top:4px;padding-top:8px}
+    .settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    .settings-card{background:var(--admin-white);border:1px solid var(--admin-line);border-radius:20px;padding:24px;box-shadow:var(--admin-shadow)}
+    .settings-card h3{font:500 22px Georgia,serif;color:var(--admin-espresso);margin:0 0 6px}
+    .settings-card p{margin:0 0 18px;color:var(--admin-muted);font-size:13px;line-height:1.55}
+    #painel .settings-card form.admin-form,.settings-card .admin-form{grid-template-columns:1fr}
+    .account-line{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:14px;background:#f7f1ea;margin-bottom:18px}
+    .account-line strong{color:var(--admin-espresso);font-size:15px}
+    .account-line span{color:var(--admin-muted);font-size:12px}
+    .modal-overlay{align-items:center}
+    .modal-card{width:min(840px,100%);max-height:min(92vh,940px);overflow:hidden;display:flex;flex-direction:column}
+    .modal-head{flex-shrink:0}
+    .modal-body{flex:1;overflow:auto;overflow-x:hidden;padding:28px 32px 32px;min-width:0}
+    .modal-body .form-bloco{display:block;width:100%;min-width:0;overflow:visible;padding:0;margin:0;border:0;box-shadow:none;background:transparent}
+    .modal-body .admin-form,.modal-body form{width:100%;min-width:0}
+    .modal-body .field,.modal-body .field-full,.modal-body .check-row,.modal-body .produto-upload{min-width:0}
+    .modal-body .field input,.modal-body .field select,.modal-body .field textarea{display:block;width:100%;max-width:100%;transform:none!important}
+    .field input:focus,.field select:focus,.field textarea:focus,#painel form>input:not([type=hidden]):focus,#painel form>select:focus,#painel form>textarea:focus{transform:none}
+    .produto-upload{align-items:stretch}
+    .upload-preview{min-height:170px}
+    @media(max-width:760px){
+      .admin-form,.settings-grid{grid-template-columns:1fr}
+      .aviso-banner{flex-direction:column;align-items:flex-start}
+      .aviso-banner button{width:100%}
+      .modal-body{padding:20px}
+    }
+
   </style>
 </head>
 <body>
@@ -92,11 +152,18 @@
       <div class="login-box">
         <h2>Bem-vindo de volta</h2>
         <p class="sub">Entre para acessar o painel administrativo.</p>
-        <form id="form-login">
+        <form id="form-login" class="ativa">
           <div class="field"><label for="email">E-mail</label><input type="email" id="email" placeholder="voce@exemplo.com" autocomplete="email" required></div>
           <div class="field"><label for="senha">Senha</label><input type="password" id="senha" placeholder="Sua senha" autocomplete="current-password" required></div>
-          <button class="btn-primary-admin" type="submit">Entrar no painel</button>
+          <div class="login-extra"><button type="button" class="link-btn" id="btn-esqueci-senha">Esqueci minha senha</button></div>
+          <button class="btn-primary-admin btn-full" type="submit">Entrar no painel</button>
         </form>
+        <form id="form-recuperar">
+          <div class="field"><label for="email-recuperar">E-mail cadastrado</label><input type="email" id="email-recuperar" placeholder="voce@exemplo.com" autocomplete="email" required></div>
+          <div class="login-extra"><button type="button" class="link-btn" id="btn-voltar-login">Voltar ao login</button></div>
+          <button class="btn-primary-admin btn-full" type="submit">Enviar senha provisória</button>
+        </form>
+        <div id="login-aviso" class="login-aviso" hidden></div>
       </div>
     </div>
   </section>
@@ -118,9 +185,14 @@
         <button class="aba-btn" data-aba="produtos">🧴 Produtos</button>
         <button class="aba-btn" data-aba="agendamentos">📅 Agendamentos</button>
         <button class="aba-btn" data-aba="contatos">💬 Mensagens</button>
+        <button class="aba-btn" data-aba="configuracoes">Configurações</button>
       </nav>
 
       <main class="conteudo">
+        <div id="aviso-senha" class="aviso-banner" role="status">
+          <p>Você acessou com uma senha provisória. Por segurança, altere a senha em Configurações agora.</p>
+          <button class="btn-primary-admin" type="button" id="btn-ir-configuracoes">Ir para configurações</button>
+        </div>
 
         <div id="aba-dashboard" class="conteudo-aba ativa">
           <div class="page-head"><div><h2>Visão geral</h2><p>Acompanhe o que está acontecendo na Afago.</p></div></div>
@@ -138,15 +210,15 @@
           <div class="page-head"><div><div class="eyebrow-admin">Catálogo de serviços</div><h2>Massagens</h2><p>Cadastre e atualize os serviços oferecidos.</p></div><button class="btn-primary-admin btn-add" data-open-form="massagem">＋ Nova massagem</button></div>
           <div class="form-bloco">
             <div class="form-top"><div><h3 id="massagemFormTitulo">Adicionar massagem</h3><span>Preencha os dados abaixo.</span></div></div>
-            <form id="form-massagem">
+            <form id="form-massagem" class="admin-form">
               <input type="hidden" id="m-id">
-              <input type="text" id="m-cat" placeholder="Categoria (relax / terap / dren)" required>
-              <input type="text" id="m-title" placeholder="Nome da Massagem" required>
-              <input type="text" id="m-duration" placeholder="Duração (ex: 60 min)" required>
-              <input type="number" step="0.01" id="m-price" placeholder="Preço R$" required>
-              <input type="text" id="m-desc" placeholder="Descrição" required>
-              <input type="text" id="m-icon" placeholder="Ícone (icon-touch / icon-flower / icon-leaf / icon-droplet)" required>
-              <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar massagem</button><button class="btn-secondary" type="button" id="btn-cancelar-massagem" style="display:none">Cancelar edição</button></div>
+              <div class="field"><label for="m-title">Nome da massagem</label><input type="text" id="m-title" placeholder="Ex: Massagem Relaxante" required></div>
+              <div class="field"><label for="m-cat">Categoria</label><input type="text" id="m-cat" placeholder="relax, terap ou dren" required></div>
+              <div class="field"><label for="m-duration">Duração</label><input type="text" id="m-duration" placeholder="Ex: 60 min" required></div>
+              <div class="field"><label for="m-price">Preço (R$)</label><input type="number" step="0.01" min="0" id="m-price" placeholder="0,00" required></div>
+              <div class="field field-full"><label for="m-desc">Descrição</label><textarea id="m-desc" placeholder="Resumo do serviço para o site" required></textarea></div>
+              <div class="field field-full"><label for="m-icon">Ícone</label><input type="text" id="m-icon" placeholder="icon-touch, icon-flower, icon-leaf ou icon-droplet" required></div>
+              <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar massagem</button><button class="btn-secondary" type="button" id="btn-cancelar-massagem" style="display:none">Cancelar</button></div>
             </form>
           </div>
           <div class="lista-head"><h3>Catálogo <span class="list-count" id="count-massagens">0</span></h3><span class="lista-hint">Gerencie os serviços publicados</span></div>
@@ -157,17 +229,17 @@
           <div class="page-head"><div><div class="eyebrow-admin">Ofertas especiais</div><h2>Pacotes</h2><p>Monte ofertas e pacotes promocionais.</p></div><button class="btn-primary-admin btn-add" data-open-form="pacote">＋ Novo pacote</button></div>
           <div class="form-bloco">
             <div class="form-top"><div><h3 id="pacoteFormTitulo">Adicionar pacote</h3><span>Defina sessões e preço promocional.</span></div></div>
-            <form id="form-pacote">
+            <form id="form-pacote" class="admin-form">
               <input type="hidden" id="p-id">
-              <input type="text" id="p-title" placeholder="Nome do Pacote" required>
-              <input type="text" id="p-sessoes" placeholder="Quantidade de sessões" required>
-              <input type="text" id="p-duracao" placeholder="Duração por sessão" required>
-              <input type="number" step="0.01" id="p-de" placeholder="Valor original (De R$)">
-              <input type="number" step="0.01" id="p-por" placeholder="Valor promocional (Por R$)" required>
-              <input type="number" step="0.01" id="p-economia" placeholder="Economia R$">
-              <input type="text" id="p-icon" placeholder="Ícone" required>
-              <label><input type="checkbox" id="p-destaque"> Em destaque na página inicial</label>
-              <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar pacote</button><button class="btn-secondary" type="button" id="btn-cancelar-pacote" style="display:none">Cancelar edição</button></div>
+              <div class="field"><label for="p-title">Nome do pacote</label><input type="text" id="p-title" placeholder="Ex: Pacote 4 sessões" required></div>
+              <div class="field"><label for="p-sessoes">Sessões</label><input type="text" id="p-sessoes" placeholder="Ex: 4 sessões" required></div>
+              <div class="field"><label for="p-duracao">Duração por sessão</label><input type="text" id="p-duracao" placeholder="Ex: 60 minutos" required></div>
+              <div class="field"><label for="p-icon">Ícone</label><input type="text" id="p-icon" placeholder="icon-flower" required></div>
+              <div class="field"><label for="p-de">Valor original (De)</label><input type="number" step="0.01" min="0" id="p-de" placeholder="0,00"></div>
+              <div class="field"><label for="p-por">Valor promocional (Por)</label><input type="number" step="0.01" min="0" id="p-por" placeholder="0,00" required></div>
+              <div class="field field-full"><label for="p-economia">Economia (R$)</label><input type="number" step="0.01" min="0" id="p-economia" placeholder="0,00"></div>
+              <label class="check-row"><input type="checkbox" id="p-destaque"><div>Destacar na página inicial<span>Aparece como a oferta mais escolhida.</span></div></label>
+              <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar pacote</button><button class="btn-secondary" type="button" id="btn-cancelar-pacote" style="display:none">Cancelar</button></div>
             </form>
           </div>
           <div class="lista-head"><h3>Ofertas <span class="list-count" id="count-pacotes">0</span></h3><span class="lista-hint">Destaque as melhores combinações</span></div>
@@ -178,19 +250,20 @@
           <div class="page-head"><div><div class="eyebrow-admin">Loja Afago</div><h2>Produtos</h2><p>Cadastre produtos com foto, preço e categoria.</p></div><button class="btn-primary-admin btn-add" data-open-form="produto">＋ Novo produto</button></div>
           <div class="form-bloco">
             <div class="form-top"><div><h3 id="produtoFormTitulo">Adicionar produto</h3><span>Foto, nome, descrição, categoria e preço.</span></div></div>
-            <form id="form-produto">
+            <form id="form-produto" class="admin-form">
               <input type="hidden" id="pr-id">
-              <input type="text" id="pr-cat" placeholder="Categoria (Sabonetes / Banhos / Óleos)" required>
-              <input type="text" id="pr-title" placeholder="Nome do Produto" required>
-              <input type="text" id="pr-desc" placeholder="Descrição" required>
-              <input type="number" step="0.01" id="pr-price" placeholder="Preço R$" required>
-              <input type="text" id="pr-bg" placeholder="Estilo de fundo (bg-clay / bg-moss / bg-honey / bg-espresso)" required>
-              <input type="text" id="pr-icon" placeholder="Ícone (ex: icon-flower)" required>
+              <div class="field"><label for="pr-title">Nome do produto</label><input type="text" id="pr-title" placeholder="Ex: Sabonete Argila Rosa" required></div>
+              <div class="field"><label for="pr-cat">Categoria</label><input type="text" id="pr-cat" placeholder="Sabonetes, Banhos ou Óleos" required></div>
+              <div class="field"><label for="pr-price">Preço (R$)</label><input type="number" step="0.01" min="0" id="pr-price" placeholder="0,00" required></div>
+              <div class="field"><label for="pr-bg">Estilo de fundo</label><input type="text" id="pr-bg" placeholder="bg-clay, bg-moss, bg-honey ou bg-espresso" required></div>
+              <div class="field field-full"><label for="pr-desc">Descrição</label><textarea id="pr-desc" placeholder="Texto curto para o card do produto" required></textarea></div>
+              <div class="field field-full"><label for="pr-icon">Ícone</label><input type="text" id="pr-icon" placeholder="Ex: icon-flower" required></div>
+              <label class="check-row"><input type="checkbox" id="pr-oculto"><div>Ocultar do site<span>Use quando o produto acabar ou estiver indisponível. Ele some da loja, mas continua no painel.</span></div></label>
               <div class="field-full produto-upload">
                 <div class="upload-preview"><img id="produtoImagemPreview" alt="Prévia do produto"><span id="produtoImagemPlaceholder">Escolha uma foto<br>para visualizar aqui</span></div>
-                <div><div class="field"><label for="pr-imagem">Foto do produto</label><div class="file-input"><input type="file" id="pr-imagem" accept="image/*"></div><div class="help">No celular abre a galeria/câmera. No PC, escolha uma imagem do computador. Máximo: 5 MB.</div></div></div>
+                <div><div class="field"><label for="pr-imagem">Foto do produto</label><div class="file-input"><input type="file" id="pr-imagem" accept="image/*"></div><div class="help">No celular abre a galeria ou a câmera. No computador, escolha uma imagem. Máximo: 5 MB.</div></div></div>
               </div>
-              <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar produto</button><button class="btn-secondary" type="button" id="btn-cancelar-produto" style="display:none">Cancelar edição</button></div>
+              <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar produto</button><button class="btn-secondary" type="button" id="btn-cancelar-produto" style="display:none">Cancelar</button></div>
             </form>
           </div>
           <div class="lista-head"><h3>Produtos cadastrados <span class="list-count" id="count-produtos">0</span></h3><span class="lista-hint">Edite, troque fotos ou remova itens</span></div>
@@ -205,6 +278,30 @@
         <div id="aba-contatos" class="conteudo-aba">
           <div class="page-head"><div><h2>Mensagens</h2><p>Centralize os contatos recebidos pelo site.</p></div></div>
           <div class="lista" id="lista-contatos"></div>
+        </div>
+
+        <div id="aba-configuracoes" class="conteudo-aba">
+          <div class="page-head"><div><div class="eyebrow-admin">Conta e segurança</div><h2>Configurações</h2><p>Atualize e-mail, senha e dados de acesso do painel.</p></div></div>
+          <div class="settings-grid">
+            <div class="settings-card">
+              <h3>E-mail da conta</h3>
+              <p>O e-mail é usado para entrar no painel e receber a senha provisória.</p>
+              <div class="account-line"><strong id="config-email-atual">—</strong><span>E-mail atual de acesso</span></div>
+              <form id="form-email" class="admin-form">
+                <div class="field"><label for="config-email">Novo e-mail</label><input type="email" id="config-email" placeholder="novo@exemplo.com" autocomplete="email" required></div>
+                <div class="form-actions"><button class="btn-primary-admin" type="submit">Atualizar e-mail</button></div>
+              </form>
+            </div>
+            <div class="settings-card">
+              <h3>Trocar senha</h3>
+              <p>Defina uma senha nova com pelo menos 6 caracteres. Se você entrou com senha provisória, altere agora.</p>
+              <form id="form-senha" class="admin-form">
+                <div class="field"><label for="config-senha-nova">Nova senha</label><input type="password" id="config-senha-nova" placeholder="Nova senha" autocomplete="new-password" minlength="6" required></div>
+                <div class="field"><label for="config-senha-confirma">Confirmar senha</label><input type="password" id="config-senha-confirma" placeholder="Repita a nova senha" autocomplete="new-password" minlength="6" required></div>
+                <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar nova senha</button></div>
+              </form>
+            </div>
+          </div>
         </div>
 
       </main>

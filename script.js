@@ -72,6 +72,7 @@ async function carregarTudo() {
     buscarTabela("pacotes", pacotesFallback),
     buscarTabela("produtos", produtosFallback)
   ]);
+  produtos = produtos.filter(p => p.oculto !== true && p.hidden !== true && p.visivel !== false);
 
   renderizarMassagens();
   renderizarPacotes();
