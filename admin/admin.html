@@ -40,6 +40,43 @@
     @media(max-width:1000px){.cards-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}.barra-lateral{width:210px}.conteudo{padding:24px}}
     @media(max-width:760px){.login-shell{grid-template-columns:1fr}.login-brand{display:none}.login-box{padding:36px 24px}.cabecalho{padding:0 16px}.cabecalho .logo h1{font-size:17px}.barra-lateral{width:100%;display:flex;overflow:auto;padding:10px;border-right:0;border-bottom:1px solid var(--admin-line);gap:5px}.aba-btn{white-space:nowrap;width:auto;margin:0}.corpo{flex-direction:column}.conteudo{padding:20px 16px}.cards-dashboard{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}#painel form{grid-template-columns:1fr}.produto-upload{grid-template-columns:1fr}.upload-preview{height:210px}.produto-admin-item{align-items:flex-start;flex-direction:column}.page-head{align-items:flex-start;flex-direction:column}}
     @media(max-width:460px){.cards-dashboard{grid-template-columns:1fr}.cabecalho .logo small{display:none}.form-bloco{padding:18px}.page-head h2{font-size:29px}}
+  
+    /* ===== Afago Admin · visual system v3 ===== */
+    :root{--admin-ink:#251f1b;--admin-espresso:#3b2922;--admin-clay:#a85c3b;--admin-clay-deep:#81442d;--admin-moss:#64724c;--admin-honey:#c59649;--admin-linen:#f7f1e9;--admin-white:#fffdfa;--admin-line:rgba(68,47,37,.11);--admin-muted:#786d65;--admin-radius:20px;--admin-shadow:0 18px 60px rgba(54,39,29,.08);--ease:cubic-bezier(.22,1,.36,1)}
+    body{background:radial-gradient(circle at 85% 0%,rgba(168,92,59,.08),transparent 28%),#f7f2eb;letter-spacing:-.01em}
+    #painel{animation:panelIn .8s var(--ease) both}
+    @keyframes panelIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+    .cabecalho{height:82px;padding:0 32px;background:rgba(255,253,250,.82);border-bottom:1px solid rgba(68,47,37,.08);box-shadow:0 8px 30px rgba(54,39,29,.035)}
+    .cabecalho .logo{gap:14px}.cabecalho .logo img{width:44px;height:44px;filter:drop-shadow(0 5px 10px rgba(60,38,28,.12))}.cabecalho .logo h1{font-size:21px}.cabecalho .logo small{letter-spacing:.18em}
+    .logout{padding:10px 15px;border-radius:12px;transition:all .25s var(--ease)}.logout:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(168,92,59,.12)}
+    .barra-lateral{width:258px;padding:28px 16px;background:rgba(250,246,240,.76);backdrop-filter:blur(18px);border-right:1px solid rgba(68,47,37,.07)}
+    .side-title{padding:0 14px 12px;font-size:9px;letter-spacing:.2em}
+    .aba-btn{position:relative;padding:13px 14px;margin-bottom:5px;border-radius:13px;transition:all .3s var(--ease);overflow:hidden}
+    .aba-btn::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:var(--admin-clay);transform:scaleY(0);transition:transform .3s var(--ease)}
+    .aba-btn:hover{background:rgba(234,216,202,.58);transform:translateX(3px)}.aba-btn.ativa{background:linear-gradient(90deg,#ead8ca,#f2e7dc);box-shadow:inset 0 0 0 1px rgba(168,92,59,.07),0 8px 24px rgba(92,59,43,.06);transform:none}.aba-btn.ativa::before{transform:scaleY(1)}
+    .conteudo{padding:42px 42px 70px;max-width:1540px}.conteudo-aba.ativa{animation:tabIn .55s var(--ease) both}@keyframes tabIn{from{opacity:0;transform:translateY(14px) scale(.995)}to{opacity:1;transform:none}}
+    .page-head{margin-bottom:30px;align-items:center}.page-head h2{font-size:40px;letter-spacing:-.035em;margin-top:2px}.page-head p{font-size:14px}.eyebrow-admin,.modal-kicker{font-size:9px;text-transform:uppercase;letter-spacing:.2em;color:var(--admin-clay);font-weight:900;margin-bottom:7px}
+    .btn-add{padding:12px 17px;border-radius:13px;white-space:nowrap}.btn-primary-admin{background:linear-gradient(135deg,#b36947,#994e32);box-shadow:0 10px 26px rgba(168,92,59,.18);transition:transform .3s var(--ease),box-shadow .3s var(--ease),filter .3s}.btn-primary-admin:hover{transform:translateY(-3px);filter:saturate(1.06);box-shadow:0 16px 32px rgba(168,92,59,.22)}
+    .cards-dashboard{gap:18px;margin-bottom:34px}.card-dash{position:relative;overflow:hidden;border-radius:20px;padding:23px;border:1px solid rgba(68,47,37,.08);box-shadow:0 12px 38px rgba(52,37,27,.055);transition:transform .4s var(--ease),box-shadow .4s var(--ease)}.card-dash::after{content:"";position:absolute;width:120px;height:120px;right:-65px;top:-65px;border-radius:50%;background:rgba(168,92,59,.06)}.card-dash:hover{transform:translateY(-5px);box-shadow:0 22px 48px rgba(52,37,27,.1)}.card-dash .icone{width:44px;height:44px;border-radius:14px}.card-dash .numero{font-size:38px;font-weight:500}.card-dash .rotulo{font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+    .form-bloco{border-radius:20px;padding:26px;box-shadow:var(--admin-shadow)}
+    .form-bloco{transition:box-shadow .3s}.form-bloco:focus-within{box-shadow:0 20px 60px rgba(52,37,27,.1)}
+    .field input,.field select,.field textarea,#painel form>input:not([type=hidden]),#painel form>select,#painel form>textarea{border-radius:13px;background:#fffefa;transition:border-color .25s,box-shadow .25s,transform .25s}.field input:focus,.field select:focus,.field textarea:focus,#painel form>input:not([type=hidden]):focus,#painel form>select:focus,#painel form>textarea:focus{transform:translateY(-1px)}
+    .lista-head{margin:6px 0 15px}.lista-head h3{font-size:25px}.list-count{display:inline-grid;place-items:center;min-width:27px;height:27px;padding:0 8px;margin-left:7px;border-radius:999px;background:#ead8ca;color:var(--admin-clay-deep);font:800 11px Inter,sans-serif;vertical-align:middle}.lista-hint{font-size:12px;color:#96887d}
+    .lista{gap:12px}.item-lista{border-radius:17px;padding:17px 19px;box-shadow:0 7px 26px rgba(52,37,27,.04);transition:transform .3s var(--ease),box-shadow .3s,border-color .3s}.item-lista:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(52,37,27,.08);border-color:rgba(168,92,59,.16)}.produto-admin-item{padding:14px 16px}.produto-admin-main img,.produto-thumb-placeholder{width:64px;height:64px;border-radius:14px;box-shadow:0 6px 16px rgba(52,37,27,.08)}
+    .acoes{margin-top:11px}.btn-ghost{padding:9px 12px;border-radius:10px;transition:all .25s var(--ease)}.btn-ghost:hover{transform:translateY(-2px)}
+    .empty-state{background:rgba(255,253,249,.62);border-radius:17px;padding:40px}
+    #adminToast{position:fixed;right:24px;bottom:24px;z-index:1000;max-width:min(420px,calc(100vw - 32px));padding:14px 17px;border-radius:14px;background:#33261f;color:#fff;box-shadow:0 18px 45px rgba(40,26,19,.24);opacity:0;transform:translateY(18px) scale(.96);pointer-events:none;transition:all .4s var(--ease);font-size:13px;font-weight:700}.adminToast{}
+    #adminToast.show{opacity:1;transform:none}#adminToast[data-tipo="success"]{background:#425438}#adminToast[data-tipo="error"]{background:#9b4638}
+    /* modal */
+    .modal-overlay{position:fixed;inset:0;z-index:900;display:grid;place-items:center;padding:22px;background:rgba(35,24,19,.46);backdrop-filter:blur(14px) saturate(.85);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .35s ease,visibility .35s}.modal-overlay.open{opacity:1;visibility:visible;pointer-events:auto}.modal-card{position:relative;width:min(780px,100%);max-height:min(90vh,900px);overflow:auto;background:linear-gradient(180deg,#fffdfa,#fbf5ed);border:1px solid rgba(255,255,255,.7);border-radius:25px;box-shadow:0 35px 100px rgba(29,19,14,.3);transform:translateY(28px) scale(.96);transition:transform .55s var(--ease);scrollbar-width:thin}.modal-overlay.open .modal-card{transform:none}.modal-glow{position:absolute;right:-120px;top:-120px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(168,92,59,.14),transparent 68%);pointer-events:none}.modal-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:20px;padding:27px 30px 21px;background:rgba(255,253,250,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(68,47,37,.07)}.modal-head h3{font:500 29px Georgia,serif;color:var(--admin-espresso);margin:0 0 5px}.modal-head p{margin:0;color:var(--admin-muted);font-size:12px}.modal-close{width:38px;height:38px;border:1px solid var(--admin-line);background:#fff;border-radius:50%;font-size:25px;line-height:1;color:var(--admin-espresso);transition:all .3s var(--ease)}.modal-close:hover{transform:rotate(90deg) scale(1.06);border-color:#c8a999;background:#f7ebe2}.modal-body{padding:26px 30px 30px}.modal-body .form-bloco{padding:0;margin:0;border:0;box-shadow:none;background:transparent}.modal-body .form-top{display:none}.modal-body form{margin:0}.modal-body .form-actions{padding-top:6px;justify-content:flex-end}.modal-body .btn-secondary{display:inline-flex!important}
+    .modal-body .produto-upload{margin-top:4px}.modal-body .upload-preview{height:190px}
+    .confirm-card{width:min(460px,100%);padding:34px;text-align:center}.confirm-icon{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;margin:0 auto 18px;background:#fae4df;color:#a34032;font-size:24px;font-weight:900}.confirm-card .modal-kicker{display:block}.confirm-card h3{font:500 30px Georgia,serif;color:var(--admin-espresso);margin:8px 0 9px}.confirm-card p{color:var(--admin-muted);font-size:14px;line-height:1.6;margin:0 auto 25px;max-width:340px}.confirm-actions{display:flex;justify-content:center;gap:10px}.btn-danger{border:0;background:#a94738;color:#fff;padding:12px 16px;border-radius:11px;font-weight:900;box-shadow:0 9px 20px rgba(169,71,56,.2);transition:all .25s var(--ease)}.btn-danger:hover{background:#91382b;transform:translateY(-2px)}
+    .modal-body .produto-upload{display:grid}.modal-body .file-input{background:#fffdfa;border-radius:13px}.modal-body .help{font-size:11px}
+    .loading-shimmer{position:relative;overflow:hidden}.loading-shimmer::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);animation:shimmer 1.4s infinite}@keyframes shimmer{100%{transform:translateX(100%)}}
+    @media(max-width:900px){.barra-lateral{width:225px}.conteudo{padding:30px 24px}.cards-dashboard{grid-template-columns:1fr 1fr}.page-head h2{font-size:35px}}
+    @media(max-width:760px){.cabecalho{padding:0 16px}.barra-lateral{width:100%;padding:10px;gap:4px}.aba-btn{padding:11px 12px}.conteudo{padding:24px 16px 50px}.page-head{align-items:flex-start;gap:16px}.btn-add{width:100%}.modal-overlay{padding:10px}.modal-card{max-height:94vh;border-radius:21px}.modal-head{padding:22px 20px 17px}.modal-body{padding:20px}.confirm-card{padding:28px 22px}.confirm-actions{flex-direction:column-reverse}.confirm-actions button{width:100%}}
+    @media(max-width:460px){.cards-dashboard{grid-template-columns:1fr}.page-head h2{font-size:31px}.modal-head h3{font-size:25px}.produto-admin-item{gap:12px}.produto-admin-main{width:100%}.produto-admin-item .acoes{width:100%}.produto-admin-item .acoes button{flex:1}}
+
   </style>
 </head>
 <body>
@@ -98,7 +135,7 @@
         </div>
 
         <div id="aba-massagens" class="conteudo-aba">
-          <div class="page-head"><div><h2>Massagens</h2><p>Cadastre e atualize os serviços oferecidos.</p></div></div>
+          <div class="page-head"><div><div class="eyebrow-admin">Catálogo de serviços</div><h2>Massagens</h2><p>Cadastre e atualize os serviços oferecidos.</p></div><button class="btn-primary-admin btn-add" data-open-form="massagem">＋ Nova massagem</button></div>
           <div class="form-bloco">
             <div class="form-top"><div><h3 id="massagemFormTitulo">Adicionar massagem</h3><span>Preencha os dados abaixo.</span></div></div>
             <form id="form-massagem">
@@ -112,12 +149,12 @@
               <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar massagem</button><button class="btn-secondary" type="button" id="btn-cancelar-massagem" style="display:none">Cancelar edição</button></div>
             </form>
           </div>
-          <h3>Lista de Massagens</h3>
+          <div class="lista-head"><h3>Catálogo <span class="list-count" id="count-massagens">0</span></h3><span class="lista-hint">Gerencie os serviços publicados</span></div>
           <div class="lista" id="lista-massagens"></div>
         </div>
 
         <div id="aba-pacotes" class="conteudo-aba">
-          <div class="page-head"><div><h2>Pacotes</h2><p>Monte ofertas e pacotes promocionais.</p></div></div>
+          <div class="page-head"><div><div class="eyebrow-admin">Ofertas especiais</div><h2>Pacotes</h2><p>Monte ofertas e pacotes promocionais.</p></div><button class="btn-primary-admin btn-add" data-open-form="pacote">＋ Novo pacote</button></div>
           <div class="form-bloco">
             <div class="form-top"><div><h3 id="pacoteFormTitulo">Adicionar pacote</h3><span>Defina sessões e preço promocional.</span></div></div>
             <form id="form-pacote">
@@ -133,12 +170,12 @@
               <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar pacote</button><button class="btn-secondary" type="button" id="btn-cancelar-pacote" style="display:none">Cancelar edição</button></div>
             </form>
           </div>
-          <h3>Lista de Pacotes</h3>
+          <div class="lista-head"><h3>Ofertas <span class="list-count" id="count-pacotes">0</span></h3><span class="lista-hint">Destaque as melhores combinações</span></div>
           <div class="lista" id="lista-pacotes"></div>
         </div>
 
         <div id="aba-produtos" class="conteudo-aba">
-          <div class="page-head"><div><h2>Produtos</h2><p>Cadastre produtos com foto, preço e categoria.</p></div></div>
+          <div class="page-head"><div><div class="eyebrow-admin">Loja Afago</div><h2>Produtos</h2><p>Cadastre produtos com foto, preço e categoria.</p></div><button class="btn-primary-admin btn-add" data-open-form="produto">＋ Novo produto</button></div>
           <div class="form-bloco">
             <div class="form-top"><div><h3 id="produtoFormTitulo">Adicionar produto</h3><span>Foto, nome, descrição, categoria e preço.</span></div></div>
             <form id="form-produto">
@@ -156,7 +193,7 @@
               <div class="form-actions"><button class="btn-primary-admin" type="submit">Salvar produto</button><button class="btn-secondary" type="button" id="btn-cancelar-produto" style="display:none">Cancelar edição</button></div>
             </form>
           </div>
-          <h3>Lista de Produtos</h3>
+          <div class="lista-head"><h3>Produtos cadastrados <span class="list-count" id="count-produtos">0</span></h3><span class="lista-hint">Edite, troque fotos ou remova itens</span></div>
           <div class="lista" id="lista-produtos"></div>
         </div>
 
@@ -171,6 +208,27 @@
         </div>
 
       </main>
+    </div>
+  </div>
+
+  <div id="crudModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-glow"></div>
+      <div class="modal-head">
+        <div><span class="modal-kicker">AFAGO · GESTÃO</span><h3 id="modalTitle">Editar item</h3><p id="modalSubtitle">Atualize os dados e salve as alterações.</p></div>
+        <button class="modal-close" type="button" data-close-modal aria-label="Fechar">×</button>
+      </div>
+      <div id="modalBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card confirm-card" role="dialog" aria-modal="true">
+      <div class="confirm-icon">!</div>
+      <span class="modal-kicker">AÇÃO IRREVERSÍVEL</span>
+      <h3 id="confirmTitle">Excluir item?</h3>
+      <p id="confirmText">Essa ação não poderá ser desfeita.</p>
+      <div class="confirm-actions"><button class="btn-secondary" type="button" data-close-confirm>Cancelar</button><button class="btn-danger" type="button" id="confirmDeleteBtn">Excluir definitivamente</button></div>
     </div>
   </div>
 
