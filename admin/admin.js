@@ -11,15 +11,6 @@ const supabaseClient = window.supabase?.createClient
 
 const dinheiro = valor => `R$ ${Number(valor || 0).toFixed(2).replace('.', ',')}`;
 const esc = valor => String(valor ?? '').replace(/[&<>\'\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
-const ICONES_CATALOGO = ['icon-touch', 'icon-flower', 'icon-leaf', 'icon-droplet', 'icon-heart', 'icon-flame', 'icon-star', 'icon-gift'];
-const ICONES_PREENCHIDOS = new Set(['icon-heart', 'icon-star']);
-const iconeSvg = (id, extraClass = 'icon') => {
-  const nome = id || 'icon-leaf';
-  const cls = ICONES_PREENCHIDOS.has(nome) ? `${extraClass} icon--fill` : extraClass;
-  return `<svg class="${cls}" aria-hidden="true"><use href="#${esc(nome)}"></use></svg>`;
-};
-const emptyState = (icone, titulo, texto) => `<div class="empty-state"><div class="empty-icon">${iconeSvg(icone)}</div><strong>${esc(titulo)}</strong><p>${esc(texto)}</p></div>`;
-const statusClass = status => `status-${String(status || 'pendente').toLowerCase().replace(/[^a-z]/g, '')}`;
 
 let produtoImagemAtual = '';
 let produtoImagemNova = '';
@@ -265,7 +256,9 @@ function resolverConfirmacao(valor) {
 function avisar(texto, tipo = 'info') {
   const el = document.getElementById('adminToast');
   if (!el) return alert(texto);
-  el.textContent = texto;
+  const textEl = el.querySelector('#adminToastText');
+  if (textEl) textEl.textContent = texto;
+  else el.textContent = texto;
   el.dataset.tipo = tipo;
   el.classList.add('show');
   clearTimeout(avisar.timer);
@@ -287,7 +280,6 @@ function resetProdutoForm() {
   document.getElementById('pr-id').value = '';
   document.getElementById('pr-bg').value = 'bg-clay';
   document.getElementById('pr-icon').value = 'icon-flower';
-  montarSeletorIcones(document.querySelector('[data-icon-target="pr-icon"]'), 'icon-flower');
   const oculto = document.getElementById('pr-oculto');
   if (oculto) oculto.checked = false;
   produtoImagemAtual = '';
@@ -305,7 +297,6 @@ function preencherProduto(p) {
   document.getElementById('pr-price').value = p.price ?? '';
   document.getElementById('pr-bg').value = p.bg ?? 'bg-clay';
   document.getElementById('pr-icon').value = p.icon ?? 'icon-flower';
-  montarSeletorIcones(document.querySelector('[data-icon-target="pr-icon"]'), p.icon ?? 'icon-flower');
   const oculto = document.getElementById('pr-oculto');
   if (oculto) oculto.checked = produtoEstaOculto(p);
   produtoImagemAtual = p.imagem || p.image_url || '';
@@ -356,30 +347,6 @@ async function salvarProdutoImagemSeNecessario() {
   return uploadProdutoImagem(file);
 }
 
-function montarSeletorIcones(picker, valorAtual) {
-  if (!picker) return;
-  const alvo = picker.dataset.iconTarget;
-  const input = document.getElementById(alvo);
-  const atual = valorAtual || input?.value || ICONES_CATALOGO[0];
-  if (input) input.value = atual;
-  const lista = ICONES_CATALOGO.includes(atual) ? ICONES_CATALOGO : [atual, ...ICONES_CATALOGO];
-  picker.innerHTML = lista.map(id => `<button type="button" class="icon-option${id === atual ? ' ativa' : ''}" data-icon="${id}" aria-label="${id}">${iconeSvg(id)}</button>`).join('');
-  picker.querySelectorAll('.icon-option').forEach(btn => {
-    btn.addEventListener('click', () => {
-      picker.querySelectorAll('.icon-option').forEach(b => b.classList.remove('ativa'));
-      btn.classList.add('ativa');
-      if (input) input.value = btn.dataset.icon;
-    });
-  });
-}
-
-function inicializarSeletoresIcones() {
-  document.querySelectorAll('.icon-picker').forEach(picker => {
-    const input = document.getElementById(picker.dataset.iconTarget);
-    montarSeletorIcones(picker, input?.value);
-  });
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
   if (!supabaseClient) {
     avisar('Não foi possível carregar o Supabase. Verifique sua conexão e recarregue a página.', 'error');
@@ -391,7 +358,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   configurarUploadProduto();
   configurarConta();
   inicializarModais();
-  inicializarSeletoresIcones();
   observarSessao();
   await verificarLogin();
 });
@@ -483,7 +449,7 @@ function configurarFormularioLogin() {
   document.getElementById('btn-sair')?.addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
     document.getElementById('tela-login').style.display = 'flex';
-    document.getElementById('painel').style.display = 'none';
+    document.getElementById('painel').classList.remove('mostrar');
     esconderAvisoLogin();
     alternarFormLogin('login');
   });
@@ -493,7 +459,7 @@ function configurarFormularioLogin() {
 
 function mostrarPainel() {
   document.getElementById('tela-login').style.display = 'none';
-  document.getElementById('painel').style.display = 'flex';
+  document.getElementById('painel').classList.add('mostrar');
   atualizarBannerSenha();
   preencherConfiguracoes();
   carregarDashboard();
@@ -576,29 +542,17 @@ async function carregarDashboard() {
 
   const { data, error } = await supabaseClient.from('agendamentos').select('*').order('created_at', { ascending: false }).limit(5);
   const lista = document.getElementById('ultimos-agendamentos');
-  if (lista) lista.innerHTML = error
-    ? emptyState('icon-calendar', 'Não foi possível carregar', 'Tente novamente em instantes.')
-    : (data || []).map(a => `
-    <div class="item-lista">
-      <div class="item-lista-row">
-        <div class="item-lead">
-          <div class="item-icon">${iconeSvg('icon-calendar')}</div>
-          <div class="item-copy">
-            <strong>${esc(a.nome)}</strong><span class="pill ${statusClass(a.status)}">${esc(a.status || 'pendente')}</span>
-            <small>${esc(a.servico)} · ${esc(a.data)} às ${esc(a.horario)}${a.whatsapp ? ` · ${esc(a.whatsapp)}` : ''}</small>
-          </div>
-        </div>
-      </div>
-    </div>`).join('') || emptyState('icon-calendar', 'Nenhum agendamento ainda', 'Quando alguém agendar pelo site, aparece aqui.');
+  if (lista) lista.innerHTML = error ? '<div class="empty-state"><svg class="icon"><use href="#icon-alert"/></svg><strong>Não foi possível carregar</strong><p>Tente novamente em instantes.</p></div>' : (data || []).map(a => `
+    <div class="item-lista"><div><strong>${esc(a.nome)}</strong><span class="pill">${esc(a.status || 'pendente')}</span></div><small>${esc(a.servico)} · ${esc(a.data)} às ${esc(a.horario)}${a.whatsapp ? ` · ${esc(a.whatsapp)}` : ''}</small></div>`).join('') || '<div class="empty-state"><svg class="icon"><use href="#icon-calendar"/></svg><strong>Nenhum agendamento ainda</strong><p>Os próximos atendimentos aparecerão aqui.</p></div>';
 }
 
 async function carregarMassagens() {
   const { data, error } = await supabaseClient.from('massagens').select('*').order('id');
   const lista = document.getElementById('lista-massagens');
   if (!lista) return;
-  if (error) { console.error(error); lista.innerHTML = emptyState('icon-touch', 'Erro ao carregar massagens', 'Verifique a conexão e tente de novo.'); return; }
+  if (error) { console.error(error); lista.innerHTML = '<div class="empty-state">Erro ao carregar massagens.</div>'; return; }
   const count = document.getElementById('count-massagens'); if (count) count.textContent = data?.length || 0;
-  lista.innerHTML = (data || []).map(m => `<div class="item-lista"><div class="item-lista-row"><div class="item-lead"><div class="item-icon">${iconeSvg(m.icon || 'icon-touch')}</div><div class="item-copy"><strong>${esc(m.title)}</strong><small>${esc(m.cat)} · ${esc(m.duration)}</small></div></div><span class="price-mini">${dinheiro(m.price)}</span></div><p class="item-desc">${esc(m.descricao)}</p><div class="acoes"><button class="btn-ghost editar" data-edit-massagem="${esc(m.id)}">${iconeSvg('icon-edit')} Editar</button><button class="btn-ghost excluir" data-delete="massagens" data-id="${esc(m.id)}" data-name="${esc(m.title)}">${iconeSvg('icon-trash')} Excluir</button></div></div>`).join('') || emptyState('icon-touch', 'Nenhuma massagem cadastrada', 'Crie o primeiro serviço do catálogo.');
+  lista.innerHTML = (data || []).map(m => `<div class="item-lista"><div><strong>${esc(m.title)}</strong><span class="price-mini">${dinheiro(m.price)}</span></div><small>${esc(m.cat)} · ${esc(m.duration)} · ${esc(m.descricao)}</small><div class="acoes"><button class="btn-ghost editar" data-edit-massagem="${esc(m.id)}"><svg class="icon icon-sm"><use href="#icon-edit"/></svg>Editar</button><button class="btn-ghost excluir" data-delete="massagens" data-id="${esc(m.id)}" data-name="${esc(m.title)}"><svg class="icon icon-sm"><use href="#icon-trash"/></svg>Excluir</button></div></div>`).join('') || '<div class="empty-state"><svg class="icon"><use href="#icon-massage"/></svg><strong>Nenhuma massagem cadastrada</strong><p>Cadastre o primeiro serviço usando o botão acima.</p></div>';
   lista.querySelectorAll('[data-edit-massagem]').forEach(b => b.addEventListener('click', () => editarMassagem(b.dataset.editMassagem)));
   lista.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', () => excluirRegistro(b.dataset.delete, b.dataset.id, b.dataset.name)));
 }
@@ -607,9 +561,9 @@ async function carregarPacotes() {
   const { data, error } = await supabaseClient.from('pacotes').select('*').order('id');
   const lista = document.getElementById('lista-pacotes');
   if (!lista) return;
-  if (error) { console.error(error); lista.innerHTML = emptyState('icon-gift', 'Erro ao carregar pacotes', 'Verifique a conexão e tente de novo.'); return; }
+  if (error) { console.error(error); lista.innerHTML = '<div class="empty-state">Erro ao carregar pacotes.</div>'; return; }
   const count = document.getElementById('count-pacotes'); if (count) count.textContent = data?.length || 0;
-  lista.innerHTML = (data || []).map(p => `<div class="item-lista"><div class="item-lista-row"><div class="item-lead"><div class="item-icon">${iconeSvg(p.icon || 'icon-gift')}</div><div class="item-copy"><strong>${esc(p.title)}</strong>${p.featured ? '<span class="pill">Destaque</span>' : ''}<small>${esc(p.sessoes)} · ${esc(p.duracao)}</small></div></div><span class="price-mini">${dinheiro(p.por)}</span></div><div class="acoes"><button class="btn-ghost editar" data-edit-pacote="${esc(p.id)}">${iconeSvg('icon-edit')} Editar</button><button class="btn-ghost excluir" data-delete="pacotes" data-id="${esc(p.id)}" data-name="${esc(p.title)}">${iconeSvg('icon-trash')} Excluir</button></div></div>`).join('') || emptyState('icon-gift', 'Nenhum pacote cadastrado', 'Monte a primeira oferta especial.');
+  lista.innerHTML = (data || []).map(p => `<div class="item-lista"><div><strong>${esc(p.title)}</strong><span class="price-mini">${dinheiro(p.por)}</span></div><small>${esc(p.sessoes)} · ${esc(p.duracao)}${p.featured ? ' · Destaque' : ''}</small><div class="acoes"><button class="btn-ghost editar" data-edit-pacote="${esc(p.id)}"><svg class="icon icon-sm"><use href="#icon-edit"/></svg>Editar</button><button class="btn-ghost excluir" data-delete="pacotes" data-id="${esc(p.id)}" data-name="${esc(p.title)}"><svg class="icon icon-sm"><use href="#icon-trash"/></svg>Excluir</button></div></div>`).join('') || '<div class="empty-state"><svg class="icon"><use href="#icon-gift"/></svg><strong>Nenhum pacote cadastrado</strong><p>Crie ofertas especiais para seus clientes.</p></div>';
   lista.querySelectorAll('[data-edit-pacote]').forEach(b => b.addEventListener('click', () => editarPacote(b.dataset.editPacote)));
   lista.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', () => excluirRegistro(b.dataset.delete, b.dataset.id, b.dataset.name)));
 }
@@ -618,13 +572,13 @@ async function carregarProdutos() {
   const { data, error } = await supabaseClient.from('produtos').select('*').order('id');
   const lista = document.getElementById('lista-produtos');
   if (!lista) return;
-  if (error) { console.error(error); lista.innerHTML = emptyState('icon-bag', 'Erro ao carregar produtos', 'Verifique as permissões da tabela no Supabase.'); return; }
+  if (error) { console.error(error); lista.innerHTML = '<div class="empty-state">Erro ao carregar produtos. Verifique as permissões da tabela no Supabase.</div>'; return; }
   const count = document.getElementById('count-produtos'); if (count) count.textContent = data?.length || 0;
   lista.innerHTML = (data || []).map(p => {
     const img = p.imagem || p.image_url || '';
     const oculto = produtoEstaOculto(p);
-    return `<div class="item-lista produto-admin-item${oculto ? ' is-oculto' : ''}"><div class="produto-admin-main">${img ? `<img src="${esc(img)}" alt="">` : `<div class="produto-thumb-placeholder">${iconeSvg(p.icon || 'icon-flower')}</div>`}<div><div><strong>${esc(p.title)}</strong>${oculto ? '<span class="pill oculto">Oculto</span>' : ''}</div><small>${esc(p.cat)} · ${esc(p.descricao)}</small></div></div><div class="acoes"><span class="price-mini">${dinheiro(p.price)}</span><button class="btn-ghost editar" data-edit-produto="${esc(p.id)}">${iconeSvg('icon-edit')} Editar</button><button class="btn-ghost ocultar" data-toggle-produto="${esc(p.id)}" data-oculto="${oculto ? '1' : '0'}">${iconeSvg(oculto ? 'icon-eye' : 'icon-eye-off')} ${oculto ? 'Mostrar no site' : 'Ocultar do site'}</button><button class="btn-ghost excluir" data-delete="produtos" data-id="${esc(p.id)}" data-name="${esc(p.title)}">${iconeSvg('icon-trash')} Excluir</button></div></div>`;
-  }).join('') || emptyState('icon-bag', 'Nenhum produto cadastrado', 'Adicione o primeiro item da loja.');
+    return `<div class="item-lista produto-admin-item${oculto ? ' is-oculto' : ''}"><div class="produto-admin-main">${img ? `<img src="${esc(img)}" alt="">` : `<div class="produto-thumb-placeholder"><svg class="icon icon-lg"><use href="#icon-leaf"/></svg></div>`}<div><div><strong>${esc(p.title)}</strong>${oculto ? '<span class="pill oculto">Oculto</span>' : ''}<span class="price-mini">${dinheiro(p.price)}</span></div><small>${esc(p.cat)} · ${esc(p.descricao)}</small></div></div><div class="acoes"><button class="btn-ghost editar" data-edit-produto="${esc(p.id)}"><svg class="icon icon-sm"><use href="#icon-edit"/></svg>Editar</button><button class="btn-ghost toggle ocultar" data-toggle-produto="${esc(p.id)}" data-oculto="${oculto ? '1' : '0'}"><svg class="icon icon-sm"><use href="#icon-eye${oculto ? '' : '-off'}"/></svg>${oculto ? 'Mostrar' : 'Ocultar'}</button><button class="btn-ghost excluir" data-delete="produtos" data-id="${esc(p.id)}" data-name="${esc(p.title)}"><svg class="icon icon-sm"><use href="#icon-trash"/></svg>Excluir</button></div></div>`;
+  }).join('') || '<div class="empty-state"><svg class="icon"><use href="#icon-package"/></svg><strong>Nenhum produto cadastrado</strong><p>Adicione produtos à loja Afago usando o botão acima.</p></div>';
   lista.querySelectorAll('[data-edit-produto]').forEach(b => b.addEventListener('click', async () => editarProduto(b.dataset.editProduto)));
   lista.querySelectorAll('[data-toggle-produto]').forEach(b => b.addEventListener('click', () => alternarVisibilidadeProduto(b.dataset.toggleProduto, b.dataset.oculto === '1')));
   lista.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', () => excluirRegistro(b.dataset.delete, b.dataset.id, b.dataset.name)));
@@ -634,8 +588,8 @@ async function carregarAgendamentos() {
   const { data, error } = await supabaseClient.from('agendamentos').select('*').order('created_at', { ascending: false });
   const lista = document.getElementById('lista-agendamentos');
   if (!lista) return;
-  if (error) { console.error(error); lista.innerHTML = emptyState('icon-calendar', 'Erro ao carregar agendamentos', 'Tente novamente em instantes.'); return; }
-  lista.innerHTML = (data || []).map(a => `<div class="item-lista"><div class="item-lista-row"><div class="item-lead"><div class="item-icon">${iconeSvg('icon-calendar')}</div><div class="item-copy"><strong>${esc(a.nome)}</strong><span class="pill ${statusClass(a.status)}">${esc(a.status || 'pendente')}</span><small>${esc(a.servico)} · ${esc(a.data)} às ${esc(a.horario)}${a.whatsapp ? ` · ${esc(a.whatsapp)}` : ''}</small></div></div></div>${a.observacoes ? `<div class="obs">${esc(a.observacoes)}</div>` : ''}<div class="acoes"><select class="status-select" data-status-id="${esc(a.id)}"><option ${a.status === 'pendente' ? 'selected' : ''}>pendente</option><option ${a.status === 'confirmado' ? 'selected' : ''}>confirmado</option><option ${a.status === 'concluido' ? 'selected' : ''}>concluido</option><option ${a.status === 'cancelado' ? 'selected' : ''}>cancelado</option></select></div></div>`).join('') || emptyState('icon-calendar', 'Nenhum agendamento recebido', 'Os pedidos do site aparecem nesta lista.');
+  if (error) { console.error(error); lista.innerHTML = '<div class="empty-state">Erro ao carregar agendamentos.</div>'; return; }
+  lista.innerHTML = (data || []).map(a => `<div class="item-lista"><div><strong>${esc(a.nome)}</strong><span class="pill">${esc(a.status || 'pendente')}</span></div><small>${esc(a.servico)} · ${esc(a.data)} às ${esc(a.horario)}${a.whatsapp ? ` · ${esc(a.whatsapp)}` : ''}</small>${a.observacoes ? `<div class="obs">${esc(a.observacoes)}</div>` : ''}<div class="acoes"><select class="status-select" data-status-id="${esc(a.id)}"><option ${a.status === 'pendente' ? 'selected' : ''}>pendente</option><option ${a.status === 'confirmado' ? 'selected' : ''}>confirmado</option><option ${a.status === 'concluido' ? 'selected' : ''}>concluido</option><option ${a.status === 'cancelado' ? 'selected' : ''}>cancelado</option></select></div></div>`).join('') || '<div class="empty-state"><svg class="icon"><use href="#icon-calendar"/></svg><strong>Nenhum agendamento recebido</strong><p>Os agendamentos feitos no site aparecerão aqui.</p></div>';
   lista.querySelectorAll('[data-status-id]').forEach(select => select.addEventListener('change', async () => {
     const { error: updateError } = await supabaseClient.from('agendamentos').update({ status: select.value }).eq('id', select.dataset.statusId);
     if (updateError) { console.error(updateError); avisar('Não foi possível atualizar o status.', 'error'); }
@@ -647,8 +601,8 @@ async function carregarContatos() {
   const { data, error } = await supabaseClient.from('contatos').select('*').order('created_at', { ascending: false });
   const lista = document.getElementById('lista-contatos');
   if (!lista) return;
-  if (error) { console.error(error); lista.innerHTML = emptyState('icon-inbox', 'Erro ao carregar mensagens', 'Tente novamente em instantes.'); return; }
-  lista.innerHTML = (data || []).map(c => `<div class="item-lista"><div class="item-lista-row"><div class="item-lead"><div class="item-icon">${iconeSvg('icon-mail')}</div><div class="item-copy"><strong>${esc(c.nome)}</strong><small>${esc(c.whatsapp || 'Sem WhatsApp')}</small></div></div></div><p class="item-desc">${esc(c.mensagem)}</p></div>`).join('') || emptyState('icon-inbox', 'Nenhuma mensagem recebida', 'Os contatos do formulário do site aparecem aqui.');
+  if (error) { console.error(error); lista.innerHTML = '<div class="empty-state">Erro ao carregar mensagens.</div>'; return; }
+  lista.innerHTML = (data || []).map(c => `<div class="item-lista"><div><strong>${esc(c.nome)}</strong><span class="price-mini">${esc(c.whatsapp || '')}</span></div><small>${esc(c.mensagem)}</small></div>`).join('') || '<div class="empty-state"><svg class="icon"><use href="#icon-message"/></svg><strong>Nenhuma mensagem recebida</strong><p>Os contatos enviados pelo formulário do site aparecerão aqui.</p></div>';
 }
 
 function configurarFormulariosCRUD() {
@@ -669,14 +623,6 @@ function resetFormGenerico(tipo) {
   document.getElementById(`btn-cancelar-${tipo}`).style.display = 'none';
   const titulo = document.getElementById(`${tipo}FormTitulo`);
   if (titulo) titulo.textContent = tipo === 'massagem' ? 'Adicionar massagem' : 'Adicionar pacote';
-  if (tipo === 'massagem') {
-    document.getElementById('m-icon').value = 'icon-touch';
-    montarSeletorIcones(document.querySelector('[data-icon-target="m-icon"]'), 'icon-touch');
-  }
-  if (tipo === 'pacote') {
-    document.getElementById('p-icon').value = 'icon-flower';
-    montarSeletorIcones(document.querySelector('[data-icon-target="p-icon"]'), 'icon-flower');
-  }
 }
 
 async function editarMassagem(id) {
@@ -689,7 +635,6 @@ async function editarMassagem(id) {
   document.getElementById('m-price').value = data.price ?? '';
   document.getElementById('m-desc').value = data.descricao || '';
   document.getElementById('m-icon').value = data.icon || 'icon-touch';
-  montarSeletorIcones(document.querySelector('[data-icon-target="m-icon"]'), data.icon || 'icon-touch');
   document.getElementById('btn-cancelar-massagem').style.display = 'inline-flex';
   abrirModalCrud('massagem', true);
 }
@@ -705,7 +650,6 @@ async function editarPacote(id) {
   document.getElementById('p-por').value = data.por ?? '';
   document.getElementById('p-economia').value = data.economia ?? '';
   document.getElementById('p-icon').value = data.icon || 'icon-flower';
-  montarSeletorIcones(document.querySelector('[data-icon-target="p-icon"]'), data.icon || 'icon-flower');
   document.getElementById('p-destaque').checked = !!data.featured;
   document.getElementById('btn-cancelar-pacote').style.display = 'inline-flex';
   abrirModalCrud('pacote', true);
