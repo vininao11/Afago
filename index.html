@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -379,12 +379,12 @@
     </div>
     
     <div class="form-success" id="bookingSuccess">
-      <div class="icon-wrap" style="margin-bottom: 16px;"><svg class="icon"><use href="#icon-check"/></svg></div>
+      <div class="icon-wrap"><svg class="icon"><use href="#icon-check"/></svg></div>
       <h3>Quase lá!</h3>
       <p id="bookingSuccessText">Para confirmar sua solicitação, é obrigatório clicar no botão abaixo e enviar a mensagem no WhatsApp.</p>
-      <div style="margin-top:var(--sp-5); display:flex; flex-direction:column; gap:12px; width:100%; max-width: 250px;">
-        <a href="#" id="bookingWhatsappLink" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%; justify-content:center; display:flex; align-items:center; gap:8px;"><svg class="icon"><use href="#icon-whatsapp"/></svg> Falar no WhatsApp</a>
-        <button class="btn btn-outline" id="bookingDoneBtn" style="width:100%; justify-content:center;">Fechar</button>
+      <div class="form-success-actions">
+        <a href="#" id="bookingWhatsappLink" target="_blank" rel="noopener" class="btn btn-primary"><svg class="icon"><use href="#icon-whatsapp"/></svg> Falar no WhatsApp</a>
+        <button class="btn btn-outline" id="bookingDoneBtn" type="button">Fechar</button>
       </div>
     </div>
   </div>
@@ -407,6 +407,6 @@
 <div class="toast" id="toast"><svg class="icon"><use href="#icon-check"/></svg><span id="toastText"></span></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="script.js?v=8"></script>
+<script src="script.js?v=9"></script>
 </body>
 </html>

@@ -285,11 +285,13 @@ h1,h2,h3,h4{font-family:var(--font-display);font-weight:500;line-height:1.12;let
 .pedido-total{display:flex;justify-content:space-between;align-items:center;margin:4px 0 18px;padding:12px 14px;border-radius:12px;background:rgba(168,72,46,.08);color:var(--espresso);font-size:.92rem;}
 .pedido-total strong{font-family:var(--font-display);color:var(--clay);font-size:1.15rem;}
 .form-success{display:none;text-align:center;padding:var(--sp-6) 0;}
-.form-success.show{display:block;}
-.form-success .icon-wrap{width:60px;height:60px;border-radius:50%;background:rgba(110,122,79,.15);color:var(--moss-deep);display:flex;align-items:center;justify-content:center;margin:0 auto var(--sp-4);}
+.form-success.show{display:flex;flex-direction:column;align-items:center;}
+.form-success .icon-wrap{width:60px;height:60px;border-radius:50%;background:rgba(110,122,79,.15);color:var(--moss-deep);display:flex;align-items:center;justify-content:center;margin:0 auto var(--sp-4);flex-shrink:0;}
 .form-success .icon-wrap .icon{width:28px;height:28px;}
 .form-success h3{margin-bottom:8px;}
-.form-success p{color:var(--espresso-2);font-size:.92rem;}
+.form-success p{color:var(--espresso-2);font-size:.92rem;max-width:320px;line-height:1.55;}
+.form-success-actions{margin-top:var(--sp-5);display:flex;flex-direction:column;gap:12px;width:100%;max-width:260px;}
+.form-success-actions .btn{width:100%;}
 @media(max-width:800px){.contact-grid{grid-template-columns:1fr;}.form-grid-2{grid-template-columns:1fr;}}
 
 .footer{background:var(--espresso);color:rgba(248,241,228,.7);padding:var(--sp-8) 0 var(--sp-5);}
@@ -345,9 +347,8 @@ h1,h2,h3,h4{font-family:var(--font-display);font-weight:500;line-height:1.12;let
   .form-row input,.form-row select,.form-row textarea{padding:12px 14px;font-size:.9rem;}
 }
 
-/* ===== Ajuste para o bookingSuccess (não conflitar com display:flex inline) ===== */
 #bookingSuccess.form-success{display:none;}
-#bookingSuccess.form-success.show{display:flex;}
+#bookingSuccess.form-success.show{display:flex;flex-direction:column;align-items:center;text-align:center;}
 
 .drawer{
   position:fixed;top:0;right:0;height:100vh;width:min(420px,92vw);background:var(--white);
