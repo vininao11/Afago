@@ -81,6 +81,27 @@ async function carregarTudo() {
   atualizarCarrinho();
 }
 
+function configurarRealtime() {
+  if (!supabaseClient) return;
+  const tabelas = ["massagens", "pacotes", "produtos"];
+  tabelas.forEach(tabela => {
+    try {
+      supabaseClient
+        .channel(`public:${tabela}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: tabela },
+          async () => {
+            await carregarTudo();
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.warn(`Realtime não disponível para ${tabela}:`, e);
+    }
+  });
+}
+
 function renderizarMassagens(filtro = "todos") {
   const lista = filtro === "todos" ? massagens : massagens.filter(m => String(m.cat || "").toLowerCase() === filtro);
   const card = m => `
@@ -110,6 +131,7 @@ function renderizarPacotes() {
   container.innerHTML = pacotes.map(p => `
     <article class="pacote-card ${p.featured ? "destaque" : ""}">
       ${p.featured ? '<span class="pacote-badge">Mais escolhido</span>' : ""}
+      ${p.icon ? `<div class="pacote-icon"><svg class="icon"><use href="#${esc(p.icon)}"></use></svg></div>` : ""}
       <h3>${esc(p.title)}</h3>
       <div class="sessoes">${esc(p.sessoes)} · ${esc(p.duracao)}</div>
       ${p.de != null ? `<div class="de">De ${dinheiro(p.de)}</div>` : ""}
@@ -427,4 +449,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   configurarWhatsApp();
   configurarRevelacoes();
   await carregarTudo();
+  configurarRealtime();
 });
