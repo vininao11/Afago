@@ -92,7 +92,10 @@ create table if not exists public.agendamentos (
   nome text,
   whatsapp text,
   observacoes text,
-  status text default 'pendente'
+  status text default 'pendente',
+  tipo text default 'agendamento',
+  itens text,
+  total numeric
 );
 
 alter table public.agendamentos enable row level security;
@@ -104,6 +107,15 @@ to public with check (true);
 create policy "admins leem agendamentos"
 on public.agendamentos for select
 to authenticated using (true);
+
+create policy "admins atualizam agendamentos"
+on public.agendamentos for update
+to authenticated using (true) with check (true);
+
+-- Se a tabela agendamentos já existe, rode também:
+alter table public.agendamentos add column if not exists tipo text default 'agendamento';
+alter table public.agendamentos add column if not exists itens text;
+alter table public.agendamentos add column if not exists total numeric;
 
 -- Mensagens de contato recebidas
 create table if not exists public.contatos (

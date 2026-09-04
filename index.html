@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
@@ -350,8 +350,22 @@
       <p class="modal-sub">Preencha os dados abaixo. Confirmaremos seu horário em seguida.</p>
       <form id="bookingForm">
         <div class="form-row">
-          <label for="bService">Serviço</label>
-          <select id="bService" required></select>
+          <label for="bService">Massagens e pacotes</label>
+          <select id="bService"></select>
+          <div class="item-picker">
+            <div class="qty-stepper" id="bServiceQtyWrap">
+              <button type="button" id="bQtyMinus" aria-label="Diminuir quantidade"><svg class="icon"><use href="#icon-minus"/></svg></button>
+              <span id="bQty">1</span>
+              <button type="button" id="bQtyPlus" aria-label="Aumentar quantidade"><svg class="icon"><use href="#icon-plus"/></svg></button>
+            </div>
+            <button class="btn btn-outline btn-sm" type="button" id="bAddService">Adicionar</button>
+          </div>
+          <div class="help-mini">Dá para incluir mais de um serviço e a quantidade de pessoas.</div>
+          <div class="pedido-lista" id="bServiceList"></div>
+        </div>
+        <div class="pedido-total" id="bTotalWrap" hidden>
+          <span>Total dos serviços</span>
+          <strong id="bTotal">R$ 0,00</strong>
         </div>
         <div class="form-grid-2">
           <div class="form-row"><label for="bDate">Data</label><input id="bDate" type="date" required></div>
@@ -364,7 +378,7 @@
       </form>
     </div>
     
-    <div class="form-success" id="bookingSuccess" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+    <div class="form-success" id="bookingSuccess">
       <div class="icon-wrap" style="margin-bottom: 16px;"><svg class="icon"><use href="#icon-check"/></svg></div>
       <h3>Quase lá!</h3>
       <p id="bookingSuccessText">Para confirmar sua solicitação, é obrigatório clicar no botão abaixo e enviar a mensagem no WhatsApp.</p>
@@ -393,6 +407,6 @@
 <div class="toast" id="toast"><svg class="icon"><use href="#icon-check"/></svg><span id="toastText"></span></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="script.js?v=7"></script>
+<script src="script.js?v=8"></script>
 </body>
 </html>

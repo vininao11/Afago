@@ -535,6 +535,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   configurarConta();
   inicializarModais();
   configurarPreviasIcones();
+  configurarFiltrosPedidos();
   observarSessao();
   await verificarLogin();
 });
@@ -730,6 +731,59 @@ function configurarConta() {
   });
 }
 
+function rotuloStatus(status) {
+  const mapa = {
+    pendente: 'Pendente',
+    confirmado: 'Aceito',
+    aceito: 'Aceito',
+    recusado: 'Recusado',
+    desistencia: 'Desistência',
+    cancelado: 'Recusado',
+    concluido: 'Concluído'
+  };
+  return mapa[status] || status || 'Pendente';
+}
+
+function classeStatus(status) {
+  if (status === 'confirmado' || status === 'aceito' || status === 'concluido') return 'aceito';
+  if (status === 'cancelado') return 'recusado';
+  return status || 'pendente';
+}
+
+function parseItensPedido(a) {
+  if (Array.isArray(a.itens)) return a.itens;
+  if (typeof a.itens === 'string' && a.itens.trim()) {
+    try { return JSON.parse(a.itens); } catch { return []; }
+  }
+  return [];
+}
+
+function tipoPedido(a) {
+  if (a.tipo === 'produto' || a.tipo === 'agendamento') return a.tipo;
+  const itens = parseItensPedido(a);
+  if (itens.some(i => i.tipo === 'produto')) return 'produto';
+  return 'agendamento';
+}
+
+function resumoPedido(a) {
+  const itens = parseItensPedido(a);
+  if (itens.length) {
+    return itens.map(i => `${i.title || i.nome || 'Item'} x${i.quantidade || 1}`).join(' · ');
+  }
+  return a.servico || 'Pedido';
+}
+
+function htmlItensPedido(a) {
+  const itens = parseItensPedido(a);
+  if (!itens.length) return a.servico ? `<div class="obs">${esc(a.servico)}</div>` : '';
+  return `<ul class="pedido-detalhe">${itens.map(i => {
+    const qtd = Number(i.quantidade || 1);
+    const preco = Number(i.price || i.por || 0);
+    const tipo = i.tipo === 'pacote' ? 'Pacote' : i.tipo === 'produto' ? 'Produto' : 'Massagem';
+    return `<li><span>${esc(tipo)} · ${esc(i.title || i.nome || 'Item')} × ${qtd}</span><strong>${dinheiro(preco * qtd)}</strong></li>`;
+  }).join('')}</ul>`;
+}
+
 async function carregarDashboard() {
   const [ag, cont, mass, prod] = await Promise.all([
     supabaseClient.from('agendamentos').select('*', { count: 'exact', head: true }),
@@ -745,7 +799,7 @@ async function carregarDashboard() {
   const { data, error } = await supabaseClient.from('agendamentos').select('*').order('created_at', { ascending: false }).limit(5);
   const lista = document.getElementById('ultimos-agendamentos');
   if (lista) lista.innerHTML = error ? '<div class="empty-state"><svg class="icon"><use href="#icon-alert"/></svg><strong>Não foi possível carregar</strong><p>Tente novamente em instantes.</p></div>' : (data || []).map(a => `
-    <div class="item-lista"><div><strong>${esc(a.nome)}</strong><span class="pill">${esc(a.status || 'pendente')}</span></div><small>${esc(a.servico)} · ${esc(a.data)} às ${esc(a.horario)}${a.whatsapp ? ` · ${esc(a.whatsapp)}` : ''}</small></div>`).join('') || '<div class="empty-state"><svg class="icon"><use href="#icon-calendar"/></svg><strong>Nenhum agendamento ainda</strong><p>Os próximos atendimentos aparecerão aqui.</p></div>';
+    <div class="item-lista"><div><strong>${esc(a.nome || 'Cliente')}</strong><span class="pill ${classeStatus(a.status)}">${esc(rotuloStatus(a.status))}</span></div><small>${esc(resumoPedido(a))}${a.total ? ` · ${dinheiro(a.total)}` : ''}${a.data ? ` · ${esc(a.data)} às ${esc(a.horario)}` : ''}</small></div>`).join('') || '<div class="empty-state"><svg class="icon"><use href="#icon-calendar"/></svg><strong>Nenhum agendamento ainda</strong><p>Os próximos atendimentos aparecerão aqui.</p></div>';
 }
 
 async function carregarMassagens() {
@@ -786,17 +840,72 @@ async function carregarProdutos() {
   lista.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', () => excluirRegistro(b.dataset.delete, b.dataset.id, b.dataset.name)));
 }
 
-async function carregarAgendamentos() {
-  const { data, error } = await supabaseClient.from('agendamentos').select('*').order('created_at', { ascending: false });
+let filtroPedidoAtual = 'todos';
+let pedidosCache = [];
+
+async function atualizarStatusPedido(id, status) {
+  const { error } = await supabaseClient.from('agendamentos').update({ status }).eq('id', id);
+  if (error) {
+    console.error(error);
+    avisar('Não foi possível atualizar o status.', 'error');
+    return;
+  }
+  const msgs = {
+    confirmado: 'Pedido aceito.',
+    recusado: 'Pedido recusado.',
+    desistencia: 'Marcado como desistência.'
+  };
+  avisar(msgs[status] || 'Status atualizado.', 'success');
+  carregarAgendamentos();
+  carregarDashboard();
+}
+
+function renderizarListaPedidos() {
   const lista = document.getElementById('lista-agendamentos');
   if (!lista) return;
+  const data = pedidosCache.filter(a => {
+    if (filtroPedidoAtual === 'todos') return true;
+    if (filtroPedidoAtual === 'pendente') return !a.status || a.status === 'pendente';
+    return tipoPedido(a) === filtroPedidoAtual;
+  });
+  lista.innerHTML = data.map(a => {
+    const tipo = tipoPedido(a);
+    const status = a.status || 'pendente';
+    const quando = a.data ? `${esc(a.data)} às ${esc(a.horario || '')}` : 'Pedido da loja';
+    return `<div class="item-lista">
+      <div><strong>${esc(a.nome || 'Cliente')}</strong><span class="pill ${classeStatus(status)}">${esc(rotuloStatus(status))}</span></div>
+      <small>${tipo === 'produto' ? 'Produto' : 'Massagem / pacote'} · ${quando}${a.whatsapp ? ` · ${esc(a.whatsapp)}` : ''}${a.total ? ` · ${dinheiro(a.total)}` : ''}</small>
+      ${htmlItensPedido(a)}
+      ${a.observacoes ? `<div class="obs">${esc(a.observacoes)}</div>` : ''}
+      <div class="acoes">
+        <button class="btn-acao aceitar" type="button" data-pedido-status="confirmado" data-id="${esc(a.id)}">Aceitar</button>
+        <button class="btn-acao recusar" type="button" data-pedido-status="recusado" data-id="${esc(a.id)}">Recusar</button>
+        <button class="btn-acao desistir" type="button" data-pedido-status="desistencia" data-id="${esc(a.id)}">Desistência</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-state"><svg class="icon"><use href="#icon-calendar"/></svg><strong>Nenhum pedido neste filtro</strong><p>Os agendamentos e compras feitos no site aparecerão aqui.</p></div>';
+  lista.querySelectorAll('[data-pedido-status]').forEach(btn => {
+    btn.addEventListener('click', () => atualizarStatusPedido(btn.dataset.id, btn.dataset.pedidoStatus));
+  });
+}
+
+async function carregarAgendamentos() {
+  const lista = document.getElementById('lista-agendamentos');
+  if (!lista) return;
+  const { data, error } = await supabaseClient.from('agendamentos').select('*').order('created_at', { ascending: false });
   if (error) { console.error(error); lista.innerHTML = '<div class="empty-state">Erro ao carregar agendamentos.</div>'; return; }
-  lista.innerHTML = (data || []).map(a => `<div class="item-lista"><div><strong>${esc(a.nome)}</strong><span class="pill">${esc(a.status || 'pendente')}</span></div><small>${esc(a.servico)} · ${esc(a.data)} às ${esc(a.horario)}${a.whatsapp ? ` · ${esc(a.whatsapp)}` : ''}</small>${a.observacoes ? `<div class="obs">${esc(a.observacoes)}</div>` : ''}<div class="acoes"><select class="status-select" data-status-id="${esc(a.id)}"><option ${a.status === 'pendente' ? 'selected' : ''}>pendente</option><option ${a.status === 'confirmado' ? 'selected' : ''}>confirmado</option><option ${a.status === 'concluido' ? 'selected' : ''}>concluido</option><option ${a.status === 'cancelado' ? 'selected' : ''}>cancelado</option></select></div></div>`).join('') || '<div class="empty-state"><svg class="icon"><use href="#icon-calendar"/></svg><strong>Nenhum agendamento recebido</strong><p>Os agendamentos feitos no site aparecerão aqui.</p></div>';
-  lista.querySelectorAll('[data-status-id]').forEach(select => select.addEventListener('change', async () => {
-    const { error: updateError } = await supabaseClient.from('agendamentos').update({ status: select.value }).eq('id', select.dataset.statusId);
-    if (updateError) { console.error(updateError); avisar('Não foi possível atualizar o status.', 'error'); }
-    else avisar('Status atualizado.', 'success');
-  }));
+  pedidosCache = data || [];
+  renderizarListaPedidos();
+}
+
+function configurarFiltrosPedidos() {
+  document.getElementById('filtros-agendamentos')?.addEventListener('click', e => {
+    const btn = e.target.closest('[data-filtro-pedido]');
+    if (!btn) return;
+    filtroPedidoAtual = btn.dataset.filtroPedido;
+    document.querySelectorAll('[data-filtro-pedido]').forEach(b => b.classList.toggle('is-active', b === btn));
+    renderizarListaPedidos();
+  });
 }
 
 async function carregarContatos() {
@@ -954,15 +1063,20 @@ async function salvarProdutoComImagem(tabela, id, payload) {
   const mensagem = resposta.error.message || '';
   if (/oculto|hidden|column/i.test(mensagem) && 'oculto' in atual) {
     atual = payloadSemColuna(atual, 'oculto');
-    avisar('Produto salvo, mas a coluna "oculto" ainda não existe no Supabase. Veja SUPABASE_SETUP.md.', 'error');
     resposta = id ? await supabaseClient.from(tabela).update(atual).eq('id', id) : await supabaseClient.from(tabela).insert([atual]);
-    if (!resposta.error) return true;
+    if (!resposta.error) { avisar(id ? 'Produto atualizado com sucesso.' : 'Produto adicionado com sucesso.', 'success'); return true; }
   }
-  if (atual.imagem && /imagem|image_url|column/i.test(resposta.error?.message || mensagem)) {
+  if (atual.imagem && /imagem|image_url|column|schema cache/i.test(resposta.error?.message || mensagem)) {
     const alternativa = payloadSemColuna(atual, 'imagem');
     alternativa.image_url = atual.imagem;
     resposta = id ? await supabaseClient.from(tabela).update(alternativa).eq('id', id) : await supabaseClient.from(tabela).insert([alternativa]);
     if (!resposta.error) { avisar(id ? 'Produto atualizado com sucesso.' : 'Produto adicionado com sucesso.', 'success'); return true; }
+    const semFoto = payloadSemColuna(atual, 'imagem');
+    resposta = id ? await supabaseClient.from(tabela).update(semFoto).eq('id', id) : await supabaseClient.from(tabela).insert([semFoto]);
+    if (!resposta.error) {
+      avisar('Produto salvo, mas falta criar a coluna "imagem" no Supabase. Rode o SQL do SUPABASE_SETUP.md.', 'error');
+      return true;
+    }
   }
   console.error('Erro ao salvar produto:', resposta.error);
   avisar(`Não foi possível salvar o produto: ${resposta.error.message}`, 'error');

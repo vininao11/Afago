@@ -715,6 +715,10 @@
       font-weight:800;
     }
     .pill.oculto{background:#EDE6DB;color:#6B5B4E}
+    .pill.pendente{background:#FBF0DA;color:#8A6A22}
+    .pill.confirmado,.pill.aceito{background:#EEF2E3;color:#4F5D32}
+    .pill.recusado{background:#FBE9E1;color:#85391F}
+    .pill.desistencia{background:#EDE6DB;color:#6B5B4E}
     .status-select{
       border:1.5px solid var(--admin-line);
       padding:8px 12px;
@@ -734,6 +738,48 @@
       font-size:13px;
       border:1px solid #EFE1C7;
     }
+    .pedido-detalhe{
+      margin-top:12px;
+      display:grid;
+      gap:6px;
+    }
+    .pedido-detalhe li{
+      list-style:none;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      font-size:13px;
+      color:#5C5044;
+    }
+    .filtros-pedido{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+    .filtro-pedido{
+      border:1.5px solid var(--admin-line);
+      background:var(--admin-white);
+      color:var(--admin-espresso);
+      border-radius:999px;
+      padding:8px 14px;
+      font-size:12px;
+      font-weight:700;
+    }
+    .filtro-pedido.is-active{
+      background:var(--admin-espresso);
+      color:#FFF8EC;
+      border-color:var(--admin-espresso);
+    }
+    .btn-acao{
+      border-radius:10px;
+      padding:8px 12px;
+      font-size:12px;
+      font-weight:700;
+    }
+    .btn-acao.aceitar{background:#EEF2E3;color:#4F5D32}
+    .btn-acao.recusar{background:#FBE9E1;color:#85391F}
+    .btn-acao.desistir{background:#EDE6DB;color:#6B5B4E}
 
     /* ===== Product Upload ===== */
     .produto-upload{
@@ -1794,9 +1840,15 @@
           <div class="page-head">
             <div class="page-head-text">
               <span class="eyebrow">Calendário</span>
-              <h2>Agendamentos</h2>
-              <p>Veja e atualize o status dos atendimentos.</p>
+              <h2>Pedidos e agendamentos</h2>
+              <p>Tudo que o cliente envia para o WhatsApp aparece aqui, com valor, itens e status.</p>
             </div>
+          </div>
+          <div class="filtros-pedido" id="filtros-agendamentos">
+            <button class="filtro-pedido is-active" type="button" data-filtro-pedido="todos">Todos</button>
+            <button class="filtro-pedido" type="button" data-filtro-pedido="agendamento">Massagens e pacotes</button>
+            <button class="filtro-pedido" type="button" data-filtro-pedido="produto">Produtos</button>
+            <button class="filtro-pedido" type="button" data-filtro-pedido="pendente">Pendentes</button>
           </div>
           <div class="lista" id="lista-agendamentos"></div>
         </div>
@@ -1930,6 +1982,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="admin.js"></script>
+  <script src="admin.js?v=8"></script>
 </body>
 </html>

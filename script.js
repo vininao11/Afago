@@ -37,6 +37,8 @@ let massagens = [...massagensFallback];
 let pacotes = [...pacotesFallback];
 let produtos = [...produtosFallback];
 let carrinho = JSON.parse(localStorage.getItem("afago_carrinho") || "[]");
+let pedidoServicos = [];
+let qtyServico = 1;
 
 const dinheiro = valor => `R$ ${Number(valor || 0).toFixed(2).replace(".", ",")}`;
 const esc = valor => String(valor ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]));
@@ -143,11 +145,13 @@ function renderizarPacotes() {
 }
 
 function produtoCard(p) {
+  const foto = p.imagem || p.image_url;
   return `
     <article class="card-produto">
-      <div class="produto-media ${esc(p.bg || "bg-clay")}">
-        <svg class="icon"><use href="#${esc(p.icon || "icon-leaf")}"></use></svg>
-        ${p.imagem || p.image_url ? `<img src="${esc(p.imagem || p.image_url)}" alt="${esc(p.title)}" loading="lazy">` : ""}
+      <div class="produto-media ${esc(p.bg || "bg-clay")}${foto ? " has-photo" : ""}">
+        ${foto
+          ? `<img src="${esc(foto)}" alt="${esc(p.title)}" loading="lazy">`
+          : `<svg class="icon"><use href="#${esc(p.icon || "icon-leaf")}"></use></svg>`}
       </div>
       <div class="produto-body">
         <span class="produto-cat">${esc(p.cat || "Produto")}</span>
@@ -197,6 +201,76 @@ function configurarFiltros() {
   montar("produtosFilters", categoriasProduto, renderizarProdutos);
 }
 
+function catalogoServicos() {
+  return [
+    ...massagens.map(m => ({
+      id: `massagem-${m.id}`,
+      tipo: "massagem",
+      title: m.title,
+      price: Number(m.price || 0)
+    })),
+    ...pacotes.map(p => ({
+      id: `pacote-${p.id}`,
+      tipo: "pacote",
+      title: p.title,
+      price: Number(p.por || 0)
+    }))
+  ];
+}
+
+function acharServico(titulo) {
+  return catalogoServicos().find(s => s.title === titulo) || null;
+}
+
+function totalPedidoServicos() {
+  return pedidoServicos.reduce((s, i) => s + Number(i.price) * Number(i.quantidade), 0);
+}
+
+function textoPedidoServicos() {
+  return pedidoServicos.map(i => `${i.title} x${i.quantidade}`).join(", ");
+}
+
+function renderizarPedidoServicos() {
+  const lista = document.getElementById("bServiceList");
+  const totalWrap = document.getElementById("bTotalWrap");
+  const totalEl = document.getElementById("bTotal");
+  if (!lista) return;
+  lista.innerHTML = pedidoServicos.map((i, idx) => `
+    <div class="pedido-item">
+      <div>
+        <strong>${esc(i.title)}</strong>
+        <small>${i.tipo === "pacote" ? "Pacote" : "Massagem"} · ${i.quantidade}x · ${dinheiro(i.price * i.quantidade)}</small>
+      </div>
+      <button class="remove-link" type="button" data-remove-service="${idx}">Remover</button>
+    </div>`).join("");
+  lista.querySelectorAll("[data-remove-service]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      pedidoServicos.splice(Number(btn.dataset.removeService), 1);
+      renderizarPedidoServicos();
+    });
+  });
+  if (totalWrap && totalEl) {
+    totalWrap.hidden = !pedidoServicos.length;
+    totalEl.textContent = dinheiro(totalPedidoServicos());
+  }
+}
+
+function atualizarQtyServico(valor) {
+  qtyServico = Math.max(1, Math.min(20, Number(valor) || 1));
+  const el = document.getElementById("bQty");
+  if (el) el.textContent = String(qtyServico);
+}
+
+function adicionarServicoPedido(titulo, quantidade = qtyServico) {
+  const servico = acharServico(titulo);
+  if (!servico) return;
+  const qtd = Math.max(1, Number(quantidade) || 1);
+  const existente = pedidoServicos.find(i => i.id === servico.id);
+  if (existente) existente.quantidade += qtd;
+  else pedidoServicos.push({ ...servico, quantidade: qtd });
+  renderizarPedidoServicos();
+}
+
 function vincularAgendamentos() {
   document.querySelectorAll(".agendar-btn").forEach(btn => {
     btn.addEventListener("click", () => abrirAgendamento(btn.dataset.service || ""));
@@ -207,14 +281,25 @@ function abrirAgendamento(servico = "") {
   const modal = document.getElementById("bookingModal");
   const select = document.getElementById("bService");
   if (!modal || !select) return;
-  select.innerHTML = [...massagens.map(m => m.title), ...pacotes.map(p => p.title)]
-    .filter(Boolean)
-    .map(nome => `<option value="${esc(nome)}">${esc(nome)}</option>`).join("");
-  if (servico) select.value = servico;
+  const catalogo = catalogoServicos();
+  select.innerHTML = [
+    `<option value="">Escolha um serviço</option>`,
+    `<optgroup label="Massagens">${catalogo.filter(s => s.tipo === "massagem").map(s => `<option value="${esc(s.title)}">${esc(s.title)} — ${dinheiro(s.price)}</option>`).join("")}</optgroup>`,
+    `<optgroup label="Pacotes">${catalogo.filter(s => s.tipo === "pacote").map(s => `<option value="${esc(s.title)}">${esc(s.title)} — ${dinheiro(s.price)}</option>`).join("")}</optgroup>`
+  ].join("");
+  pedidoServicos = [];
+  atualizarQtyServico(1);
+  if (servico) {
+    select.value = servico;
+    adicionarServicoPedido(servico, 1);
+  } else {
+    renderizarPedidoServicos();
+  }
   const date = document.getElementById("bDate");
   if (date) date.min = new Date().toISOString().split("T")[0];
   preencherHorarios();
   document.getElementById("bookingFormWrap")?.style.setProperty("display", "block");
+  document.getElementById("bookingSuccess")?.classList.remove("show");
   document.getElementById("bookingSuccess")?.style.setProperty("display", "none");
   modal.classList.add("is-open");
   document.getElementById("bookingOverlay")?.classList.add("is-open");
@@ -240,27 +325,57 @@ function preencherHorarios() {
   select.innerHTML = horarios.map(h => `<option value="${h}">${h}</option>`).join("");
 }
 
+async function salvarPedido(dados) {
+  if (!supabaseClient) return;
+  const { error } = await supabaseClient.from("agendamentos").insert([dados]);
+  if (!error) return;
+  console.error("Erro ao salvar pedido:", error);
+  const minimo = {
+    servico: dados.servico,
+    data: dados.data || "",
+    horario: dados.horario || "",
+    nome: dados.nome,
+    whatsapp: dados.whatsapp,
+    observacoes: dados.observacoes,
+    status: dados.status || "pendente"
+  };
+  const { error: erroMinimo } = await supabaseClient.from("agendamentos").insert([minimo]);
+  if (erroMinimo) console.error("Erro ao salvar pedido (mínimo):", erroMinimo);
+}
+
 async function enviarAgendamento(e) {
   e.preventDefault();
+  if (!pedidoServicos.length) {
+    showToast("Adicione pelo menos um serviço para agendar.");
+    return;
+  }
+  const nome = document.getElementById("bName")?.value || "";
+  const whatsapp = document.getElementById("bPhone")?.value || "";
+  const data = document.getElementById("bDate")?.value || "";
+  const horario = document.getElementById("bTime")?.value || "";
+  const observacoes = document.getElementById("bNotes")?.value || "";
+  const total = totalPedidoServicos();
+  const servico = textoPedidoServicos();
+  const detalhes = pedidoServicos.map(i => `• ${i.title} (${i.tipo}) x${i.quantidade} — ${dinheiro(i.price * i.quantidade)}`).join("\n");
   const dados = {
-    servico: document.getElementById("bService")?.value || "",
-    data: document.getElementById("bDate")?.value || "",
-    horario: document.getElementById("bTime")?.value || "",
-    nome: document.getElementById("bName")?.value || "",
-    whatsapp: document.getElementById("bPhone")?.value || "",
-    observacoes: document.getElementById("bNotes")?.value || "",
+    tipo: "agendamento",
+    servico,
+    itens: JSON.stringify(pedidoServicos),
+    total,
+    data,
+    horario,
+    nome,
+    whatsapp,
+    observacoes,
     status: "pendente"
   };
+  await salvarPedido(dados);
 
-  if (supabaseClient) {
-    const { error } = await supabaseClient.from("agendamentos").insert([dados]);
-    if (error) console.error("Erro ao salvar agendamento:", error);
-  }
-
-  const texto = `Olá! Gostaria de agendar *${dados.servico}*.\n\nNome: ${dados.nome}\nWhatsApp: ${dados.whatsapp}\nData: ${dados.data}\nHorário: ${dados.horario}${dados.observacoes ? `\nObservações: ${dados.observacoes}` : ""}`;
+  const texto = `Olá! Gostaria de agendar na Afago:\n\n${detalhes}\n\n*Total: ${dinheiro(total)}*\n\nNome: ${nome}\nWhatsApp: ${whatsapp}\nData: ${data}\nHorário: ${horario}${observacoes ? `\nObservações: ${observacoes}` : ""}`;
   const link = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`;
   document.getElementById("bookingWhatsappLink").href = link;
   document.getElementById("bookingFormWrap")?.style.setProperty("display", "none");
+  document.getElementById("bookingSuccess")?.classList.add("show");
   document.getElementById("bookingSuccess")?.style.setProperty("display", "flex");
 }
 
@@ -393,9 +508,23 @@ function alterarCarrinho(id, acao) {
   atualizarCarrinho();
 }
 
-function finalizarCarrinho() {
+async function finalizarCarrinho() {
+  if (!carrinho.length) return;
   const itens = carrinho.map(i => `• ${i.title} x${i.quantidade} — ${dinheiro(i.price * i.quantidade)}`).join("\n");
-  const total = carrinho.reduce((s, i) => s + i.price * i.quantidade, 0);
+  const total = carrinho.reduce((s, i) => s + Number(i.price) * Number(i.quantidade), 0);
+  const pedido = {
+    tipo: "produto",
+    servico: carrinho.map(i => `${i.title} x${i.quantidade}`).join(", "),
+    itens: JSON.stringify(carrinho.map(i => ({ id: i.id, tipo: "produto", title: i.title, price: i.price, quantidade: i.quantidade }))),
+    total,
+    data: "",
+    horario: "",
+    nome: "",
+    whatsapp: "",
+    observacoes: "Pedido de produtos da loja",
+    status: "pendente"
+  };
+  await salvarPedido(pedido);
   const texto = `Olá! Gostaria de fazer um pedido pela loja Afago:\n\n${itens}\n\n*Total: ${dinheiro(total)}*`;
   window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
 }
@@ -414,6 +543,14 @@ function configurarBooking() {
   document.getElementById("bookingDoneBtn")?.addEventListener("click", fecharAgendamento);
   document.getElementById("bookingOverlay")?.addEventListener("click", fecharAgendamento);
   document.getElementById("bDate")?.addEventListener("change", preencherHorarios);
+  document.getElementById("bQtyMinus")?.addEventListener("click", () => atualizarQtyServico(qtyServico - 1));
+  document.getElementById("bQtyPlus")?.addEventListener("click", () => atualizarQtyServico(qtyServico + 1));
+  document.getElementById("bAddService")?.addEventListener("click", () => {
+    const titulo = document.getElementById("bService")?.value;
+    if (!titulo) return showToast("Escolha um serviço antes de adicionar.");
+    adicionarServicoPedido(titulo, qtyServico);
+    atualizarQtyServico(1);
+  });
 }
 
 function configurarWhatsApp() {
