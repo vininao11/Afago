@@ -132,13 +132,38 @@ No Supabase, abra **Storage > New bucket** e crie um bucket chamado:
 
 Deixe o bucket como **Public** para que as fotos apareçam no site público.
 
-Permissão de upload:
+Depois rode **todas** as políticas abaixo no SQL Editor. Sem elas, o painel consegue alterar preço, mas **falha ao enviar foto**.
+
 ```sql
-create policy if not exists "admins podem enviar imagens de produtos"
+drop policy if exists "admins podem enviar imagens de produtos" on storage.objects;
+drop policy if exists "admins podem atualizar imagens de produtos" on storage.objects;
+drop policy if exists "admins podem remover imagens de produtos" on storage.objects;
+drop policy if exists "leitura pública de imagens de produtos" on storage.objects;
+
+create policy "admins podem enviar imagens de produtos"
 on storage.objects
 for insert
 to authenticated
 with check (bucket_id = 'produtos');
+
+create policy "admins podem atualizar imagens de produtos"
+on storage.objects
+for update
+to authenticated
+using (bucket_id = 'produtos')
+with check (bucket_id = 'produtos');
+
+create policy "admins podem remover imagens de produtos"
+on storage.objects
+for delete
+to authenticated
+using (bucket_id = 'produtos');
+
+create policy "leitura pública de imagens de produtos"
+on storage.objects
+for select
+to public
+using (bucket_id = 'produtos');
 ```
 
 ## 3. Realtime (atualização automática no site)

@@ -357,21 +357,110 @@ function atualizarPreviewProduto(url) {
   }
 }
 
+const MAX_UPLOAD_BYTES = 12 * 1024 * 1024;
+const MAX_IMAGE_SIDE = 1600;
+const JPEG_QUALITY = 0.82;
+
+function idUnicoArquivo() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function arquivoPareceImagem(file) {
+  if (!file) return false;
+  if (file.type && file.type.startsWith('image/')) return true;
+  return /\.(jpe?g|png|webp|gif|bmp|heic|heif)$/i.test(file.name || '');
+}
+
+function ehHeic(file) {
+  const tipo = (file?.type || '').toLowerCase();
+  const nome = (file?.name || '').toLowerCase();
+  return tipo.includes('heic') || tipo.includes('heif') || /\.heic$|\.heif$/.test(nome);
+}
+
+function mensagemErroUpload(error) {
+  const msg = `${error?.message || ''} ${error?.error || ''} ${error?.statusCode || ''}`.toLowerCase();
+  if (/row-level security|rls|policy|unauthorized|not allowed|403|401/.test(msg)) {
+    return 'Sem permissão para enviar fotos. No Supabase, crie o bucket "produtos" (público) e as políticas de Storage. Veja SUPABASE_SETUP.md.';
+  }
+  if (/bucket|not found|404/.test(msg)) {
+    return 'O bucket "produtos" não existe no Storage do Supabase. Crie-o como público. Veja SUPABASE_SETUP.md.';
+  }
+  if (/payload|too large|413|maximum|exceed/.test(msg)) {
+    return 'A foto ainda está grande demais para o Storage. Tente outra imagem.';
+  }
+  if (/mime|content type|not supported/.test(msg)) {
+    return 'Este formato de foto não é aceito. Envie em JPG ou PNG.';
+  }
+  return error?.message || 'Não foi possível enviar a foto.';
+}
+
+async function criarBitmap(file) {
+  if (window.createImageBitmap) {
+    try {
+      return await createImageBitmap(file);
+    } catch {}
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    return await new Promise((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error('Não foi possível ler a foto. Tente JPG ou PNG.'));
+      el.src = url;
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function compactarImagem(file) {
+  if (!arquivoPareceImagem(file)) throw new Error('Selecione uma imagem válida (JPG, PNG ou WEBP).');
+  if (file.size > MAX_UPLOAD_BYTES) throw new Error('A imagem deve ter no máximo 12 MB.');
+
+  let bitmap;
+  try {
+    bitmap = await criarBitmap(file);
+  } catch (erro) {
+    if (ehHeic(file)) {
+      throw new Error('Fotos HEIC do iPhone não são aceitas. Em Ajustes > Câmera > Formatos, escolha "Mais Compatível", ou envie a foto em JPG.');
+    }
+    throw erro;
+  }
+
+  const escala = Math.min(1, MAX_IMAGE_SIDE / Math.max(bitmap.width || 1, bitmap.height || 1));
+  const width = Math.max(1, Math.round((bitmap.width || 1) * escala));
+  const height = Math.max(1, Math.round((bitmap.height || 1) * escala));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  if (bitmap.close) bitmap.close();
+
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(b => b ? resolve(b) : reject(new Error('Não foi possível preparar a foto.')), 'image/jpeg', JPEG_QUALITY);
+  });
+  const nome = `${idUnicoArquivo()}.jpg`;
+  if (typeof File === 'function') return new File([blob], nome, { type: 'image/jpeg', lastModified: Date.now() });
+  blob.name = nome;
+  return blob;
+}
+
 async function uploadProdutoImagem(file) {
   if (!file) return '';
-  if (!file.type.startsWith('image/')) throw new Error('Selecione uma imagem válida.');
-  if (file.size > 5 * 1024 * 1024) throw new Error('A imagem deve ter no máximo 5 MB.');
-
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const path = `produtos/${crypto.randomUUID()}.${ext || 'jpg'}`;
-  const { error } = await supabaseClient.storage.from(STORAGE_BUCKET).upload(path, file, {
+  const preparado = await compactarImagem(file);
+  const path = preparado.name || `${idUnicoArquivo()}.jpg`;
+  const { error } = await supabaseClient.storage.from(STORAGE_BUCKET).upload(path, preparado, {
     cacheControl: '3600',
     upsert: false,
-    contentType: file.type
+    contentType: 'image/jpeg'
   });
   if (error) {
     console.error('Upload da imagem:', error);
-    throw new Error('Não foi possível enviar a foto. Verifique se o bucket "produtos" existe e está configurado como público no Supabase.');
+    throw new Error(mensagemErroUpload(error));
   }
   const { data } = supabaseClient.storage.from(STORAGE_BUCKET).getPublicUrl(path);
   return data?.publicUrl || '';
@@ -772,10 +861,22 @@ async function editarProduto(id) {
 
 function configurarUploadProduto() {
   const input = document.getElementById('pr-imagem');
+  const preview = document.querySelector('.upload-preview');
+  preview?.addEventListener('click', () => input?.click());
   input?.addEventListener('change', () => {
     const file = input.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) return avisar('Selecione uma imagem válida.', 'error');
+    if (!arquivoPareceImagem(file)) {
+      input.value = '';
+      return avisar('Selecione uma imagem válida (JPG, PNG ou WEBP).', 'error');
+    }
+    if (ehHeic(file)) {
+      avisar('Foto HEIC detectada. Vamos converter para JPG ao salvar. Se falhar, envie em JPG.', 'info');
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      input.value = '';
+      return avisar('A imagem deve ter no máximo 12 MB.', 'error');
+    }
     const url = URL.createObjectURL(file);
     atualizarPreviewProduto(url);
   });
@@ -798,12 +899,14 @@ async function salvarPacote(e) {
 async function salvarProduto(e) {
   e.preventDefault();
   const button = e.target.querySelector('button[type=submit]');
+  const id = document.getElementById('pr-id').value;
+  const textoBotao = id ? 'Salvar alterações' : 'Criar produto';
   if (button) { button.disabled = true; button.textContent = 'Salvando...'; }
   try {
-    const id = document.getElementById('pr-id').value;
     let imagem = produtoImagemAtual;
-    if (document.getElementById('pr-imagem')?.files?.[0]) {
-      avisar('Enviando foto...');
+    const arquivo = document.getElementById('pr-imagem')?.files?.[0];
+    if (arquivo) {
+      avisar('Preparando e enviando foto...', 'info');
       imagem = await salvarProdutoImagemSeNecessario();
     }
     const payload = { cat: document.getElementById('pr-cat').value.trim(), title: document.getElementById('pr-title').value.trim(), descricao: document.getElementById('pr-desc').value.trim(), price: Number(document.getElementById('pr-price').value), bg: document.getElementById('pr-bg').value.trim() || 'bg-clay', icon: document.getElementById('pr-icon').value.trim() || 'icon-flower', oculto: !!document.getElementById('pr-oculto')?.checked };
@@ -814,7 +917,7 @@ async function salvarProduto(e) {
     console.error(error);
     avisar(error.message || 'Não foi possível salvar o produto.', 'error');
   } finally {
-    if (button) { button.disabled = false; button.textContent = 'Salvar produto'; }
+    if (button) { button.disabled = false; button.textContent = textoBotao; }
   }
 }
 
