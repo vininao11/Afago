@@ -132,7 +132,29 @@ No Supabase, abra **Storage > New bucket** e crie um bucket chamado:
 
 Deixe o bucket como **Public** para que as fotos apareçam no site público.
 
-Depois rode **todas** as políticas abaixo no SQL Editor. Sem elas, o painel consegue alterar preço, mas **falha ao enviar foto**.
+O bucket sozinho **não basta**. Na sua tela, `POLICIES = 0` significa que o envio de foto será bloqueado.
+
+### Opção A — pelo painel (mais fácil)
+
+1. Abra **Storage**
+2. Clique na aba **Policies** (ao lado de Buckets)
+3. Em `produtos`, crie 2 políticas:
+
+**1. Leitura pública**
+- Policy name: `leitura pública de imagens de produtos`
+- Allowed operation: `SELECT`
+- Target roles: `public`
+- Policy definition: `bucket_id = 'produtos'`
+
+**2. Upload de admin**
+- Policy name: `admins podem enviar imagens de produtos`
+- Allowed operation: `INSERT`
+- Target roles: `authenticated`
+- Policy definition: `bucket_id = 'produtos'`
+
+### Opção B — SQL Editor
+
+Rode **todas** as políticas abaixo. Sem elas, o painel altera preço, mas **falha ao enviar foto**.
 
 ```sql
 drop policy if exists "admins podem enviar imagens de produtos" on storage.objects;
@@ -165,6 +187,8 @@ for select
 to public
 using (bucket_id = 'produtos');
 ```
+
+Depois disso, em Storage > Buckets, a coluna **POLICIES** do bucket `produtos` precisa ser maior que 0.
 
 ## 3. Realtime (atualização automática no site)
 

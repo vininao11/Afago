@@ -414,9 +414,12 @@ async function criarBitmap(file) {
   }
 }
 
-async function compactarImagem(file) {
+async function compactarImagem(file, opcoes = {}) {
   if (!arquivoPareceImagem(file)) throw new Error('Selecione uma imagem válida (JPG, PNG ou WEBP).');
   if (file.size > MAX_UPLOAD_BYTES) throw new Error('A imagem deve ter no máximo 12 MB.');
+
+  const maxSide = opcoes.maxSide || MAX_IMAGE_SIDE;
+  const qualidade = opcoes.quality || JPEG_QUALITY;
 
   let bitmap;
   try {
@@ -428,7 +431,7 @@ async function compactarImagem(file) {
     throw erro;
   }
 
-  const escala = Math.min(1, MAX_IMAGE_SIDE / Math.max(bitmap.width || 1, bitmap.height || 1));
+  const escala = Math.min(1, maxSide / Math.max(bitmap.width || 1, bitmap.height || 1));
   const width = Math.max(1, Math.round((bitmap.width || 1) * escala));
   const height = Math.max(1, Math.round((bitmap.height || 1) * escala));
   const canvas = document.createElement('canvas');
@@ -441,12 +444,21 @@ async function compactarImagem(file) {
   if (bitmap.close) bitmap.close();
 
   const blob = await new Promise((resolve, reject) => {
-    canvas.toBlob(b => b ? resolve(b) : reject(new Error('Não foi possível preparar a foto.')), 'image/jpeg', JPEG_QUALITY);
+    canvas.toBlob(b => b ? resolve(b) : reject(new Error('Não foi possível preparar a foto.')), 'image/jpeg', qualidade);
   });
   const nome = `${idUnicoArquivo()}.jpg`;
   if (typeof File === 'function') return new File([blob], nome, { type: 'image/jpeg', lastModified: Date.now() });
   blob.name = nome;
   return blob;
+}
+
+function blobParaDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Não foi possível ler a foto.'));
+    reader.readAsDataURL(blob);
+  });
 }
 
 async function uploadProdutoImagem(file) {
@@ -458,12 +470,14 @@ async function uploadProdutoImagem(file) {
     upsert: false,
     contentType: 'image/jpeg'
   });
-  if (error) {
-    console.error('Upload da imagem:', error);
-    throw new Error(mensagemErroUpload(error));
+  if (!error) {
+    const { data } = supabaseClient.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    return data?.publicUrl || '';
   }
-  const { data } = supabaseClient.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-  return data?.publicUrl || '';
+  console.error('Upload da imagem:', error);
+  avisar('Sem política no Storage. Salvando a foto junto do produto...', 'info');
+  const menor = await compactarImagem(file, { maxSide: 900, quality: 0.68 });
+  return blobParaDataUrl(menor);
 }
 
 async function salvarProdutoImagemSeNecessario() {
@@ -907,7 +921,12 @@ async function salvarProduto(e) {
     const arquivo = document.getElementById('pr-imagem')?.files?.[0];
     if (arquivo) {
       avisar('Preparando e enviando foto...', 'info');
-      imagem = await salvarProdutoImagemSeNecessario();
+      try {
+        imagem = await salvarProdutoImagemSeNecessario();
+      } catch (erroImg) {
+        console.error(erroImg);
+        avisar(erroImg.message || 'A foto não pôde ser enviada agora. Salvando o restante do produto.', 'error');
+      }
     }
     const payload = { cat: document.getElementById('pr-cat').value.trim(), title: document.getElementById('pr-title').value.trim(), descricao: document.getElementById('pr-desc').value.trim(), price: Number(document.getElementById('pr-price').value), bg: document.getElementById('pr-bg').value.trim() || 'bg-clay', icon: document.getElementById('pr-icon').value.trim() || 'icon-flower', oculto: !!document.getElementById('pr-oculto')?.checked };
     if (imagem) payload.imagem = imagem;
