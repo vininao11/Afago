@@ -4,6 +4,7 @@ const STORAGE_BUCKET = "produtos";
 const LOGIN_ATTEMPTS_KEY = "afago_login_attempts";
 const MUST_CHANGE_PASSWORD_KEY = "afago_must_change_password";
 const MAX_LOGIN_ATTEMPTS = 5;
+const SESSION_TEMP_KEY = "afago_sessao_temporaria";
 
 const supabaseClient = window.supabase?.createClient
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
@@ -57,6 +58,39 @@ function marcarTrocaSenha(ativo) {
 
 function precisaTrocarSenha() {
   return localStorage.getItem(MUST_CHANGE_PASSWORD_KEY) === '1';
+}
+
+function salvarSessaoTemporaria(sessao) {
+  try {
+    sessionStorage.setItem(SESSION_TEMP_KEY, JSON.stringify(sessao));
+  } catch {}
+}
+
+function lerSessaoTemporaria() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_TEMP_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function limparSessaoTemporaria() {
+  sessionStorage.removeItem(SESSION_TEMP_KEY);
+}
+
+async function aplicarSessaoTemporariaSeExistir() {
+  const sessaoTemp = lerSessaoTemporaria();
+  if (!sessaoTemp) return false;
+  try {
+    const { error } = await supabaseClient.auth.setSession({
+      access_token: sessaoTemp.access_token,
+      refresh_token: sessaoTemp.refresh_token
+    });
+    if (!error) return true;
+  } catch {}
+  limparSessaoTemporaria();
+  return false;
 }
 
 function mostrarAvisoLogin(texto, tipo = '') {
@@ -365,7 +399,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function verificarLogin() {
   const { data, error } = await supabaseClient.auth.getSession();
   if (erroSupabase(error, 'verificar sessão')) return;
-  if (data?.session) mostrarPainel();
+  if (data?.session) {
+    mostrarPainel();
+    return;
+  }
+  const restaurada = await aplicarSessaoTemporariaSeExistir();
+  if (restaurada) mostrarPainel();
 }
 
 function observarSessao() {
@@ -413,6 +452,25 @@ function configurarFormularioLogin() {
     }
     limparTentativasLogin(email);
     if (button) { button.disabled = false; button.textContent = 'Entrar no painel'; }
+    
+    const manterConectado = document.getElementById('lembrar-acesso')?.checked;
+    if (!manterConectado) {
+      const { data: sessaoData } = await supabaseClient.auth.getSession();
+      if (sessaoData?.session) {
+        salvarSessaoTemporaria({
+          access_token: sessaoData.session.access_token,
+          refresh_token: sessaoData.session.refresh_token
+        });
+        await supabaseClient.auth.signOut({ scope: 'local' });
+        await supabaseClient.auth.setSession({
+          access_token: sessaoData.session.access_token,
+          refresh_token: sessaoData.session.refresh_token
+        });
+      }
+    } else {
+      limparSessaoTemporaria();
+    }
+    
     mostrarPainel();
   });
 
@@ -448,6 +506,7 @@ function configurarFormularioLogin() {
 
   document.getElementById('btn-sair')?.addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
+    limparSessaoTemporaria();
     document.getElementById('tela-login').style.display = 'flex';
     document.getElementById('painel').classList.remove('mostrar');
     esconderAvisoLogin();
