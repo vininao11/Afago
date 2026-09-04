@@ -892,8 +892,17 @@ function renderizarListaPedidos() {
 async function carregarAgendamentos() {
   const lista = document.getElementById('lista-agendamentos');
   if (!lista) return;
-  const { data, error } = await supabaseClient.from('agendamentos').select('*').order('created_at', { ascending: false });
-  if (error) { console.error(error); lista.innerHTML = '<div class="empty-state">Erro ao carregar agendamentos.</div>'; return; }
+  let { data, error } = await supabaseClient.from('agendamentos').select('*').order('created_at', { ascending: false });
+  if (error) {
+    const simples = await supabaseClient.from('agendamentos').select('id, created_at, servico, data, horario, nome, whatsapp, observacoes, status').order('created_at', { ascending: false });
+    data = simples.data;
+    error = simples.error;
+  }
+  if (error) {
+    console.error(error);
+    lista.innerHTML = `<div class="empty-state">Erro ao carregar agendamentos: ${esc(error.message)}</div>`;
+    return;
+  }
   pedidosCache = data || [];
   renderizarListaPedidos();
 }

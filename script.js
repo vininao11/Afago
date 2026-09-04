@@ -325,22 +325,37 @@ function preencherHorarios() {
   select.innerHTML = horarios.map(h => `<option value="${h}">${h}</option>`).join("");
 }
 
+function colunaAusente(mensagem) {
+  const match = String(mensagem || "").match(/Could not find the '([^']+)' column/i);
+  return match ? match[1] : "";
+}
+
 async function salvarPedido(dados) {
-  if (!supabaseClient) return;
-  const { error } = await supabaseClient.from("agendamentos").insert([dados]);
-  if (!error) return;
-  console.error("Erro ao salvar pedido:", error);
-  const minimo = {
-    servico: dados.servico,
-    data: dados.data || "",
-    horario: dados.horario || "",
-    nome: dados.nome,
-    whatsapp: dados.whatsapp,
-    observacoes: dados.observacoes,
-    status: dados.status || "pendente"
-  };
-  const { error: erroMinimo } = await supabaseClient.from("agendamentos").insert([minimo]);
-  if (erroMinimo) console.error("Erro ao salvar pedido (mínimo):", erroMinimo);
+  if (!supabaseClient) return false;
+  let payload = { ...dados };
+  for (let i = 0; i < 8; i++) {
+    const { error } = await supabaseClient.from("agendamentos").insert([payload]);
+    if (!error) return true;
+    const coluna = colunaAusente(error.message);
+    if (coluna && coluna in payload) {
+      delete payload[coluna];
+      continue;
+    }
+    payload = {
+      servico: dados.servico,
+      data: dados.data || "",
+      horario: dados.horario || "",
+      nome: dados.nome || "",
+      whatsapp: dados.whatsapp || "",
+      observacoes: dados.observacoes || "",
+      status: dados.status || "pendente"
+    };
+    const { error: erroMinimo } = await supabaseClient.from("agendamentos").insert([payload]);
+    if (!erroMinimo) return true;
+    console.error("Erro ao salvar pedido:", erroMinimo);
+    return false;
+  }
+  return false;
 }
 
 async function enviarAgendamento(e) {
@@ -357,6 +372,7 @@ async function enviarAgendamento(e) {
   const total = totalPedidoServicos();
   const servico = textoPedidoServicos();
   const detalhes = pedidoServicos.map(i => `• ${i.title} (${i.tipo}) x${i.quantidade} — ${dinheiro(i.price * i.quantidade)}`).join("\n");
+  const obsCompleta = [observacoes, detalhes, `Total: ${dinheiro(total)}`].filter(Boolean).join("\n");
   const dados = {
     tipo: "agendamento",
     servico,
@@ -366,10 +382,11 @@ async function enviarAgendamento(e) {
     horario,
     nome,
     whatsapp,
-    observacoes,
+    observacoes: obsCompleta,
     status: "pendente"
   };
-  await salvarPedido(dados);
+  const salvou = await salvarPedido(dados);
+  if (!salvou) showToast("Não foi possível registrar o pedido no painel. O WhatsApp ainda vai abrir.");
 
   const texto = `Olá! Gostaria de agendar na Afago:\n\n${detalhes}\n\n*Total: ${dinheiro(total)}*\n\nNome: ${nome}\nWhatsApp: ${whatsapp}\nData: ${data}\nHorário: ${horario}${observacoes ? `\nObservações: ${observacoes}` : ""}`;
   const link = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`;
@@ -521,10 +538,11 @@ async function finalizarCarrinho() {
     horario: "",
     nome: "",
     whatsapp: "",
-    observacoes: "Pedido de produtos da loja",
+    observacoes: `Pedido de produtos da loja\n${itens}\nTotal: ${dinheiro(total)}`,
     status: "pendente"
   };
-  await salvarPedido(pedido);
+  const salvou = await salvarPedido(pedido);
+  if (!salvou) showToast("Não foi possível registrar o pedido no painel. O WhatsApp ainda vai abrir.");
   const texto = `Olá! Gostaria de fazer um pedido pela loja Afago:\n\n${itens}\n\n*Total: ${dinheiro(total)}*`;
   window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
 }
