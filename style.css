@@ -294,19 +294,23 @@ h1,h2,h3,h4{font-family:var(--font-display);font-weight:500;line-height:1.12;let
 .overlay-bg.is-open{opacity:1;pointer-events:auto;}
 
 .modal{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-48%) scale(.97);width:min(480px,92vw);
-  max-height:85vh;overflow-y:auto;overflow-x:hidden;background:var(--white);border-radius:var(--radius-lg);
-  padding:32px;z-index:301;opacity:0;pointer-events:none;transition:opacity .3s var(--ease),transform .3s var(--ease);
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-48%) scale(.97);width:min(460px,92vw);
+  max-height:82vh;background:var(--white);border-radius:var(--radius-lg);
+  padding:0;z-index:301;opacity:0;pointer-events:none;transition:opacity .3s var(--ease),transform .3s var(--ease);
   box-shadow:var(--shadow-lg);
-  scrollbar-gutter:auto;
-  scrollbar-width:thin;
+  display:flex;flex-direction:column;
 }
-.modal::-webkit-scrollbar{width:6px;}
-.modal::-webkit-scrollbar-track{background:transparent;}
-.modal::-webkit-scrollbar-thumb{background:rgba(36,28,22,.18);border-radius:3px;}
-.modal::-webkit-scrollbar-thumb:hover{background:rgba(36,28,22,.3);}
+.modal-scroll{
+  overflow-y:auto;overflow-x:hidden;
+  padding:32px;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+  flex-grow:1;
+  border-radius:var(--radius-lg);
+}
+.modal-scroll::-webkit-scrollbar{display:none;width:0;height:0;}
 .modal.is-open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
-.modal-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:var(--linen-2);display:flex;align-items:center;justify-content:center;z-index:1;}
+.modal-close{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;background:var(--linen-2);display:flex;align-items:center;justify-content:center;z-index:2;}
 .modal-close:hover{background:var(--linen);}
 .modal-close .icon{width:16px;height:16px;}
 .modal h3{font-size:1.4rem;margin-bottom:var(--sp-2);padding-right:44px;}
@@ -316,10 +320,10 @@ h1,h2,h3,h4{font-family:var(--font-display);font-weight:500;line-height:1.12;let
 @media(max-width:600px){
   .modal{
     width:92vw;
-    max-height:88vh;
-    padding:24px;
+    max-height:85vh;
     border-radius:20px;
   }
+  .modal-scroll{padding:24px;}
   .modal-close{top:12px;right:12px;width:34px;height:34px;}
   .modal h3{font-size:1.25rem;padding-right:40px;}
   .form-row{margin-bottom:var(--sp-4);}

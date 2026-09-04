@@ -200,6 +200,19 @@
       box-shadow:0 0 0 4px rgba(168,72,46,.10);
       background:#FFF;
     }
+    .icon-select-wrap{display:flex;gap:12px;align-items:center;}
+    .icon-select-wrap select{flex-grow:1;}
+    .icon-preview{
+      width:44px;height:44px;flex-shrink:0;
+      border-radius:var(--admin-radius-sm);
+      background:var(--admin-clay-soft);color:var(--admin-clay-deep);
+      display:flex;align-items:center;justify-content:center;
+      border:1.5px solid var(--admin-line);
+      transition:all .2s var(--ease);
+    }
+    .icon-preview .icon{width:22px;height:22px;}
+    .icon-preview.vazio{opacity:.4;}
+    .field-full{grid-column:1/-1;}
 
     /* ===== Buttons ===== */
     .btn{
@@ -1514,7 +1527,13 @@
               </div>
               <div class="field">
                 <label for="m-cat">Categoria</label>
-                <input type="text" id="m-cat" placeholder="relax, terap ou dren" required>
+                <select id="m-cat" required>
+                  <option value="">Escolha uma categoria...</option>
+                  <option value="relax">😌 Relaxante</option>
+                  <option value="terap">💆 Terapêutica</option>
+                  <option value="dren">🌊 Drenagem</option>
+                  <option value="model">✨ Modeladora</option>
+                </select>
               </div>
               <div class="field">
                 <label for="m-duration">Duração</label>
@@ -1528,9 +1547,21 @@
                 <label for="m-desc">Descrição</label>
                 <textarea id="m-desc" placeholder="Resumo do serviço para exibição no site" required></textarea>
               </div>
-              <div class="field field-full">
+              <div class="field">
                 <label for="m-icon">Ícone</label>
-                <input type="text" id="m-icon" placeholder="icon-touch, icon-flower, icon-leaf ou icon-droplet" required>
+                <div class="icon-select-wrap">
+                  <select id="m-icon" required>
+                    <option value="">Escolha um ícone...</option>
+                    <option value="icon-touch">👆 Toque</option>
+                    <option value="icon-flower">🌸 Flor</option>
+                    <option value="icon-leaf">🍃 Folha</option>
+                    <option value="icon-droplet">💧 Gota</option>
+                    <option value="icon-flame">🔥 Chama</option>
+                    <option value="icon-heart">❤️ Coração</option>
+                    <option value="icon-star">⭐ Estrela</option>
+                  </select>
+                  <div class="icon-preview vazio" id="m-icon-preview"><svg class="icon"><use href="#icon-touch"/></svg></div>
+                </div>
               </div>
               <div class="form-actions">
                 <button class="btn btn-primary" type="submit">
@@ -1588,7 +1619,19 @@
               </div>
               <div class="field">
                 <label for="p-icon">Ícone</label>
-                <input type="text" id="p-icon" placeholder="icon-flower" required>
+                <div class="icon-select-wrap">
+                  <select id="p-icon" required>
+                    <option value="">Escolha um ícone...</option>
+                    <option value="icon-flower">🌸 Flor</option>
+                    <option value="icon-gift">🎁 Presente</option>
+                    <option value="icon-star">⭐ Estrela</option>
+                    <option value="icon-heart">❤️ Coração</option>
+                    <option value="icon-leaf">🍃 Folha</option>
+                    <option value="icon-droplet">💧 Gota</option>
+                    <option value="icon-touch">👆 Toque</option>
+                  </select>
+                  <div class="icon-preview vazio" id="p-icon-preview"><svg class="icon"><use href="#icon-flower"/></svg></div>
+                </div>
               </div>
               <div class="field">
                 <label for="p-de">Valor original (De)</label>
@@ -1657,7 +1700,15 @@
               </div>
               <div class="field">
                 <label for="pr-cat">Categoria</label>
-                <input type="text" id="pr-cat" placeholder="Sabonetes, Banhos ou Óleos" required>
+                <select id="pr-cat" required>
+                  <option value="">Escolha uma categoria...</option>
+                  <option value="Sabonetes">🧼 Sabonetes</option>
+                  <option value="Banhos">🛁 Banhos</option>
+                  <option value="Óleos">🫒 Óleos</option>
+                  <option value="Hidratantes">💧 Hidratantes</option>
+                  <option value="Aromaterapia">🕯️ Aromaterapia</option>
+                  <option value="Kits">🎁 Kits</option>
+                </select>
               </div>
               <div class="field">
                 <label for="pr-price">Preço (R$)</label>
@@ -1677,9 +1728,21 @@
                 <label for="pr-desc">Descrição</label>
                 <textarea id="pr-desc" placeholder="Texto curto para o card do produto" required></textarea>
               </div>
-              <div class="field field-full">
+              <div class="field">
                 <label for="pr-icon">Ícone</label>
-                <input type="text" id="pr-icon" placeholder="Ex: icon-flower" required>
+                <div class="icon-select-wrap">
+                  <select id="pr-icon" required>
+                    <option value="">Escolha um ícone...</option>
+                    <option value="icon-flower">🌸 Flor</option>
+                    <option value="icon-leaf">🍃 Folha</option>
+                    <option value="icon-droplet">💧 Gota</option>
+                    <option value="icon-heart">❤️ Coração</option>
+                    <option value="icon-star">⭐ Estrela</option>
+                    <option value="icon-flame">🔥 Chama</option>
+                    <option value="icon-touch">👆 Toque</option>
+                  </select>
+                  <div class="icon-preview vazio" id="pr-icon-preview"><svg class="icon"><use href="#icon-flower"/></svg></div>
+                </div>
               </div>
               <label class="check-row">
                 <input type="checkbox" id="pr-oculto">

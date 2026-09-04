@@ -314,6 +314,7 @@ function resetProdutoForm() {
   document.getElementById('pr-id').value = '';
   document.getElementById('pr-bg').value = 'bg-clay';
   document.getElementById('pr-icon').value = 'icon-flower';
+  atualizarPreviaIcone('pr-icon', 'icon-flower');
   const oculto = document.getElementById('pr-oculto');
   if (oculto) oculto.checked = false;
   produtoImagemAtual = '';
@@ -331,6 +332,7 @@ function preencherProduto(p) {
   document.getElementById('pr-price').value = p.price ?? '';
   document.getElementById('pr-bg').value = p.bg ?? 'bg-clay';
   document.getElementById('pr-icon').value = p.icon ?? 'icon-flower';
+  atualizarPreviaIcone('pr-icon', p.icon ?? 'icon-flower');
   const oculto = document.getElementById('pr-oculto');
   if (oculto) oculto.checked = produtoEstaOculto(p);
   produtoImagemAtual = p.imagem || p.image_url || '';
@@ -381,6 +383,43 @@ async function salvarProdutoImagemSeNecessario() {
   return uploadProdutoImagem(file);
 }
 
+function configurarPreviasIcones() {
+  const campos = [
+    { select: 'm-icon', preview: 'm-icon-preview', padrao: 'icon-touch' },
+    { select: 'p-icon', preview: 'p-icon-preview', padrao: 'icon-flower' },
+    { select: 'pr-icon', preview: 'pr-icon-preview', padrao: 'icon-flower' }
+  ];
+  campos.forEach(({ select, preview, padrao }) => {
+    const sel = document.getElementById(select);
+    const prev = document.getElementById(preview);
+    if (!sel || !prev) return;
+    const atualizar = () => {
+      const valor = sel.value || padrao;
+      const use = prev.querySelector('use');
+      if (use) use.setAttribute('href', `#${valor}`);
+      prev.classList.toggle('vazio', !sel.value);
+    };
+    sel.addEventListener('change', atualizar);
+    atualizar();
+  });
+}
+
+function atualizarPreviaIcone(selectId, valorIcone) {
+  const mapa = {
+    'm-icon': 'm-icon-preview',
+    'p-icon': 'p-icon-preview',
+    'pr-icon': 'pr-icon-preview'
+  };
+  const prevId = mapa[selectId];
+  if (!prevId) return;
+  const prev = document.getElementById(prevId);
+  const sel = document.getElementById(selectId);
+  if (!prev) return;
+  const use = prev.querySelector('use');
+  if (use && valorIcone) use.setAttribute('href', `#${valorIcone}`);
+  if (prev) prev.classList.toggle('vazio', !valorIcone);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   if (!supabaseClient) {
     avisar('Não foi possível carregar o Supabase. Verifique sua conexão e recarregue a página.', 'error');
@@ -392,6 +431,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   configurarUploadProduto();
   configurarConta();
   inicializarModais();
+  configurarPreviasIcones();
   observarSessao();
   await verificarLogin();
 });
@@ -679,6 +719,13 @@ function resetFormGenerico(tipo) {
   form.reset();
   const prefixo = tipo === 'massagem' ? 'm' : 'p';
   document.getElementById(`${prefixo}-id`).value = '';
+  if (tipo === 'massagem') {
+    document.getElementById('m-icon').value = 'icon-touch';
+    atualizarPreviaIcone('m-icon', 'icon-touch');
+  } else {
+    document.getElementById('p-icon').value = 'icon-flower';
+    atualizarPreviaIcone('p-icon', 'icon-flower');
+  }
   document.getElementById(`btn-cancelar-${tipo}`).style.display = 'none';
   const titulo = document.getElementById(`${tipo}FormTitulo`);
   if (titulo) titulo.textContent = tipo === 'massagem' ? 'Adicionar massagem' : 'Adicionar pacote';
@@ -694,6 +741,7 @@ async function editarMassagem(id) {
   document.getElementById('m-price').value = data.price ?? '';
   document.getElementById('m-desc').value = data.descricao || '';
   document.getElementById('m-icon').value = data.icon || 'icon-touch';
+  atualizarPreviaIcone('m-icon', data.icon || 'icon-touch');
   document.getElementById('btn-cancelar-massagem').style.display = 'inline-flex';
   abrirModalCrud('massagem', true);
 }
@@ -709,6 +757,7 @@ async function editarPacote(id) {
   document.getElementById('p-por').value = data.por ?? '';
   document.getElementById('p-economia').value = data.economia ?? '';
   document.getElementById('p-icon').value = data.icon || 'icon-flower';
+  atualizarPreviaIcone('p-icon', data.icon || 'icon-flower');
   document.getElementById('p-destaque').checked = !!data.featured;
   document.getElementById('btn-cancelar-pacote').style.display = 'inline-flex';
   abrirModalCrud('pacote', true);

@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -344,35 +344,36 @@
 <div class="overlay-bg" id="bookingOverlay"></div>
 <div class="modal" id="bookingModal" role="dialog" aria-modal="true" aria-labelledby="bookingTitle">
   <button class="modal-close" id="bookingCloseBtn" aria-label="Fechar"><svg class="icon"><use href="#icon-close"/></svg></button>
-  <div id="bookingFormWrap">
-    <h3 id="bookingTitle">Agendar massagem</h3>
-    <p class="modal-sub">Preencha os dados abaixo. Confirmaremos seu horário em seguida.</p>
-    <form id="bookingForm">
-      <div class="form-row">
-        <label for="bService">Serviço</label>
-        <select id="bService" required></select>
+  <div class="modal-scroll">
+    <div id="bookingFormWrap">
+      <h3 id="bookingTitle">Agendar massagem</h3>
+      <p class="modal-sub">Preencha os dados abaixo. Confirmaremos seu horário em seguida.</p>
+      <form id="bookingForm">
+        <div class="form-row">
+          <label for="bService">Serviço</label>
+          <select id="bService" required></select>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row"><label for="bDate">Data</label><input id="bDate" type="date" required></div>
+          <div class="form-row"><label for="bTime">Horário</label><select id="bTime" required></select></div>
+        </div>
+        <div class="form-row"><label for="bName">Nome completo</label><input id="bName" type="text" required placeholder="Seu nome"></div>
+        <div class="form-row"><label for="bPhone">WhatsApp</label><input id="bPhone" type="tel" required placeholder="(42) 8426-4566"></div>
+        <div class="form-row"><label for="bNotes">Observações (opcional)</label><textarea id="bNotes" rows="2" placeholder="Alguma preferência ou observação?"></textarea></div>
+        <button type="submit" class="btn btn-primary btn-block">Confirmar agendamento</button>
+      </form>
+    </div>
+    
+    <div class="form-success" id="bookingSuccess" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+      <div class="icon-wrap" style="margin-bottom: 16px;"><svg class="icon"><use href="#icon-check"/></svg></div>
+      <h3>Quase lá!</h3>
+      <p id="bookingSuccessText">Para confirmar sua solicitação, é obrigatório clicar no botão abaixo e enviar a mensagem no WhatsApp.</p>
+      <div style="margin-top:var(--sp-5); display:flex; flex-direction:column; gap:12px; width:100%; max-width: 250px;">
+        <a href="#" id="bookingWhatsappLink" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%; justify-content:center; display:flex; align-items:center; gap:8px;"><svg class="icon"><use href="#icon-whatsapp"/></svg> Falar no WhatsApp</a>
+        <button class="btn btn-outline" id="bookingDoneBtn" style="width:100%; justify-content:center;">Fechar</button>
       </div>
-      <div class="form-grid-2">
-        <div class="form-row"><label for="bDate">Data</label><input id="bDate" type="date" required></div>
-        <div class="form-row"><label for="bTime">Horário</label><select id="bTime" required></select></div>
-      </div>
-      <div class="form-row"><label for="bName">Nome completo</label><input id="bName" type="text" required placeholder="Seu nome"></div>
-      <div class="form-row"><label for="bPhone">WhatsApp</label><input id="bPhone" type="tel" required placeholder="(42) 8426-4566"></div>
-      <div class="form-row"><label for="bNotes">Observações (opcional)</label><textarea id="bNotes" rows="2" placeholder="Alguma preferência ou observação?"></textarea></div>
-      <button type="submit" class="btn btn-primary btn-block">Confirmar agendamento</button>
-    </form>
-  </div>
-  
-  <div class="form-success" id="bookingSuccess" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
-    <div class="icon-wrap" style="margin-bottom: 16px;"><svg class="icon"><use href="#icon-check"/></svg></div>
-    <h3>Quase lá!</h3>
-    <p id="bookingSuccessText">Para confirmar sua solicitação, é obrigatório clicar no botão abaixo e enviar a mensagem no WhatsApp.</p>
-    <div style="margin-top:var(--sp-5); display:flex; flex-direction:column; gap:12px; width:100%; max-width: 250px;">
-      <a href="#" id="bookingWhatsappLink" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%; justify-content:center; display:flex; align-items:center; gap:8px;"><svg class="icon"><use href="#icon-whatsapp"/></svg> Falar no WhatsApp</a>
-      <button class="btn btn-outline" id="bookingDoneBtn" style="width:100%; justify-content:center;">Fechar</button>
     </div>
   </div>
-  
 </div>
 
 <div class="overlay-bg" id="cartOverlay"></div>
@@ -392,6 +393,6 @@
 <div class="toast" id="toast"><svg class="icon"><use href="#icon-check"/></svg><span id="toastText"></span></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="script.js?v=3"></script>
+<script src="script.js?v=4"></script>
 </body>
 </html>
