@@ -408,5 +408,127 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="script.js?v=10"></script>
+<script>
+(() => {
+  const SB_URL="https://sybomoikpbswfpplheve.supabase.co";
+  const SB_KEY="sb_publishable_a20Xy8dj13ahVvPN_TcnNg_DrJaGVrp";
+  const db=window.supabase?.createClient(SB_URL,SB_KEY);
+  let expediente=[],bloqueados=new Set(),mes=new Date();
+
+  const pad=n=>String(n).padStart(2,"0");
+  const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+
+  const css=document.createElement("style");
+  css.textContent=`
+  #afagoCalendar{margin-top:8px;padding:14px;border:1px solid #ead8c8;border-radius:14px;background:#fffaf6}
+  .af-cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .af-cal-title{font-weight:700;text-transform:capitalize;color:#4b3427}
+  .af-cal-nav{border:1px solid #ead8c8;background:white;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:20px}
+  .af-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .af-cal-week{text-align:center;font-size:11px;font-weight:700;color:#9b806c;padding:4px}
+  .af-cal-day{height:40px;border:1px solid transparent;border-radius:10px;background:#fff;cursor:pointer;font-weight:600;color:#4b3427;position:relative}
+  .af-cal-day:hover:not(:disabled){border-color:#9b6948}
+  .af-cal-day.selected{background:#6d4a35;color:white}
+  .af-cal-day:disabled{background:#fff0f0;color:#d55;cursor:not-allowed;border-color:#f0cccc}
+  .af-cal-day:disabled:after{content:"×";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#d33;font-size:25px;font-weight:800}
+  #bDate{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
+  .af-cal-note{text-align:center;font-size:11px;color:#9b806c;margin-top:9px}
+  `;
+  document.head.appendChild(css);
+
+  async function carregar(){
+    if(!db)return;
+    const [e,i]=await Promise.all([
+      db.from("expediente").select("dia_semana,horario_inicio,horario_fim"),
+      db.from("indisponibilidades").select("data")
+    ]);
+    expediente=e.data||[];
+    bloqueados=new Set((i.data||[]).map(x=>String(x.data).slice(0,10)));
+    desenhar();
+  }
+
+  function indisponivel(d){
+    const hoje=new Date();hoje.setHours(0,0,0,0);
+    return d<hoje ||
+      !expediente.some(x=>Number(x.dia_semana)===d.getDay()) ||
+      bloqueados.has(iso(d));
+  }
+
+  function desenhar(){
+    const input=document.getElementById("bDate");
+    if(!input)return;
+
+    let cal=document.getElementById("afagoCalendar");
+    if(!cal){
+      cal=document.createElement("div");
+      cal.id="afagoCalendar";
+      input.parentNode.appendChild(cal);
+    }
+
+    const primeiro=new Date(mes.getFullYear(),mes.getMonth(),1);
+    const ultimo=new Date(mes.getFullYear(),mes.getMonth()+1,0);
+    const titulo=mes.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+
+    let h=`
+      <div class="af-cal-head">
+        <button type="button" class="af-cal-nav" id="afPrev">‹</button>
+        <div class="af-cal-title">${titulo}</div>
+        <button type="button" class="af-cal-nav" id="afNext">›</button>
+      </div>
+      <div class="af-cal-grid">
+        ${["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(x=>`<div class="af-cal-week">${x}</div>`).join("")}
+    `;
+
+    for(let i=0;i<primeiro.getDay();i++)h+="<div></div>";
+
+    for(let dia=1;dia<=ultimo.getDate();dia++){
+      const d=new Date(mes.getFullYear(),mes.getMonth(),dia);
+      const data=iso(d);
+      const indis=indisponivel(d);
+      const selecionada=input.value===data;
+
+      h+=`
+        <button type="button"
+          class="af-cal-day ${selecionada?"selected":""}"
+          data-data="${data}"
+          ${indis?"disabled":""}>
+          ${dia}
+        </button>`;
+    }
+
+    h+=`</div><div class="af-cal-note">Dias indisponíveis aparecem com X vermelho.</div>`;
+    cal.innerHTML=h;
+
+    document.getElementById("afPrev").onclick=()=>{
+      mes=new Date(mes.getFullYear(),mes.getMonth()-1,1);
+      desenhar();
+    };
+
+    document.getElementById("afNext").onclick=()=>{
+      mes=new Date(mes.getFullYear(),mes.getMonth()+1,1);
+      desenhar();
+    };
+
+    cal.querySelectorAll("[data-data]").forEach(btn=>{
+      btn.onclick=()=>{
+        input.value=btn.dataset.data;
+        input.dispatchEvent(new Event("change",{bubbles:true}));
+        desenhar();
+      };
+    });
+  }
+
+  function iniciar(){
+    const input=document.getElementById("bDate");
+    if(!input)return;
+    desenhar();
+    carregar();
+  }
+
+  if(document.readyState==="loading")
+    document.addEventListener("DOMContentLoaded",iniciar);
+  else iniciar();
+})();
+</script>
 </body>
 </html>
