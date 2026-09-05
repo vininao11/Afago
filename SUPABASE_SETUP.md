@@ -222,7 +222,59 @@ O login usa Supabase Auth. Para "Esqueci minha senha":
    - `http://localhost:5500/admin/admin.html`
 2. Confirme se o provedor de e-mail está ativo em **Authentication > Emails**.
 
-## 5. Resumo rápido
+### 1.5 Tabela `expediente` (NOVA)
+Horários de atendimento disponíveis por dia da semana.
+```sql
+create table if not exists public.expediente (
+  id bigint generated always as identity primary key,
+  created_at timestamp with time zone default now(),
+  dia_semana integer not null, -- 0=Domingo, 1=Segunda, ..., 6=Sábado
+  horario_inicio text not null, -- ex: '09:00'
+  horario_fim text not null, -- ex: '18:00'
+  intervalo_entre_atendimentos integer default 60, -- em minutos
+  ativo boolean default true
+);
+alter table public.expediente enable row level security;
+create policy "leitura pública de expediente" on public.expediente for select to public using (true);
+create policy "admins gerenciam expediente" on public.expediente for all to authenticated using (true) with check (true);
+
+-- Dados padrão (segunda a sábado, 9h às 18h)
+insert into public.expediente (dia_semana, horario_inicio, horario_fim, intervalo_entre_atendimentos, ativo) values
+(1, '09:00', '18:00', 60, true),
+(2, '09:00', '18:00', 60, true),
+(3, '09:00', '18:00', 60, true),
+(4, '09:00', '18:00', 60, true),
+(5, '09:00', '18:00', 60, true),
+(6, '09:00', '12:00', 60, true)
+on conflict do nothing;
+```
+
+### 1.6 Tabela `indisponibilidades` (NOVA)
+Bloqueio de dias ou horários específicos.
+```sql
+create table if not exists public.indisponibilidades (
+  id bigint generated always as identity primary key,
+  created_at timestamp with time zone default now(),
+  data date not null,
+  horario_inicio text, -- se null, dia todo indisponível
+  horario_fim text, -- se null, dia todo indisponível
+  motivo text,
+  ativo boolean default true
+);
+alter table public.indisponibilidades enable row level security;
+create policy "leitura pública de indisponibilidades" on public.indisponibilidades for select to public using (true);
+create policy "admins gerenciam indisponibilidades" on public.indisponibilidades for all to authenticated using (true) with check (true);
+```
+
+## 5. Novas funcionalidades implementadas
+- **Confirmação WhatsApp**: Botão na aba Agendamentos para enviar confirmação automática
+- **Filtros de status**: Aceitos, Recusados, Desistências
+- **Criar agendamento manual**: Cadastrar agendamentos diretamente no painel
+- **Aba Expediente**: Configurar horários por dia da semana e indisponibilidades
+- **Aba Relatórios**: Faturamento mensal, produtos mais/menos vendidos, massagens mais/menos solicitadas
+- **Site principal**: Clientes só veem horários disponíveis conforme expediente
+
+## 6. Resumo rápido
 
 | O que fazer | Onde |
 |---|---|
