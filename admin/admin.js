@@ -1138,3 +1138,554 @@ async function excluirRegistro(tabela, id, nome) {
   if (tabela === 'massagens') { carregarMassagens(); carregarDashboard(); }
   if (tabela === 'pacotes') { carregarPacotes(); carregarDashboard(); }
 }
+
+// ============================================================
+// NOVAS FUNCIONALIDADES - WhatsApp, Expediente, Relatórios
+// ============================================================
+
+// ----- Função para gerar mensagem de confirmação WhatsApp -----
+function gerarMensagemWhatsApp(agendamento) {
+  const itens = parseItensPedido(agendamento);
+  let servicos = '';
+  if (itens.length) {
+    servicos = itens.map(i => `• ${i.title || i.nome || 'Item'}${i.quantidade > 1 ? ` (x${i.quantidade})` : ''}`).join('\n');
+  } else {
+    servicos = `• ${agendamento.servico || 'Serviço de massagem'}`;
+  }
+  const data = agendamento.data || '';
+  const horario = agendamento.horario || '';
+  const nome = agendamento.nome || 'Cliente';
+  
+  return `Olá ${nome}! Tudo bem? 😊
+
+*A Afago confirma seu agendamento!*
+
+📋 *Serviços solicitados:*
+${servicos}
+
+📅 *Data:* ${data}
+⏰ *Horário:* ${horario}
+
+Agradecemos pela sua preferência! Estamos ansiosos para recebê-la(o) e proporcionar uma experiência incrível de bem-estar.
+
+Qualquer dúvida, é só chamar!
+
+Com carinho,
+*Equipe Afago* 💆‍♀️✨`;
+}
+
+function abrirWhatsApp(agendamento) {
+  const mensagem = gerarMensagemWhatsApp(agendamento);
+  let whatsapp = agendamento.whatsapp || '';
+  whatsapp = whatsapp.replace(/\D/g, '');
+  if (!whatsapp) {
+    avisar('Este agendamento não tem WhatsApp cadastrado.', 'error');
+    return;
+  }
+  const url = `https://wa.me/55${whatsapp}?text=${encodeURIComponent(mensagem)}`;
+  window.open(url, '_blank');
+}
+
+// ----- Modificar renderização de pedidos para incluir WhatsApp -----
+const _renderizarListaPedidosOriginal = renderizarListaPedidos;
+renderizarListaPedidos = function() {
+  const lista = document.getElementById('lista-agendamentos');
+  if (!lista) return;
+  const data = pedidosCache.filter(a => {
+    if (filtroPedidoAtual === 'todos') return true;
+    if (filtroPedidoAtual === 'pendente') return !a.status || a.status === 'pendente';
+    if (filtroPedidoAtual === 'aceito') return a.status === 'confirmado' || a.status === 'aceito' || a.status === 'concluido';
+    if (filtroPedidoAtual === 'recusado') return a.status === 'recusado' || a.status === 'cancelado';
+    if (filtroPedidoAtual === 'desistencia') return a.status === 'desistencia';
+    return tipoPedido(a) === filtroPedidoAtual;
+  });
+  lista.innerHTML = data.map(a => {
+    const tipo = tipoPedido(a);
+    const status = a.status || 'pendente';
+    const quando = a.data ? `${esc(a.data)} às ${esc(a.horario || '')}` : 'Pedido da loja';
+    const statusAceito = status === 'confirmado' || status === 'aceito';
+    return `<div class="item-lista">
+      <div><strong>${esc(a.nome || 'Cliente')}</strong><span class="pill ${classeStatus(status)}">${esc(rotuloStatus(status))}</span></div>
+      <small>${tipo === 'produto' ? 'Produto' : 'Massagem / pacote'} · ${quando}${a.whatsapp ? ` · ${esc(a.whatsapp)}` : ''}${a.total ? ` · ${dinheiro(a.total)}` : ''}</small>
+      ${htmlItensPedido(a)}
+      ${a.observacoes ? `<div class="obs">${esc(a.observacoes)}</div>` : ''}
+      <div class="acoes">
+        ${statusAceito && a.whatsapp ? `<a class="btn-whatsapp" href="#" onclick="abrirWhatsApp(pedidosCache.find(p=>p.id==${a.id}));return false;">
+          <svg class="icon"><use href="#icon-whatsapp"/></svg>Confirmar WhatsApp
+        </a>` : ''}
+        <button class="btn-acao aceitar" type="button" data-pedido-status="confirmado" data-id="${esc(a.id)}">Aceitar</button>
+        <button class="btn-acao recusar" type="button" data-pedido-status="recusado" data-id="${esc(a.id)}">Recusar</button>
+        <button class="btn-acao desistir" type="button" data-pedido-status="desistencia" data-id="${esc(a.id)}">Desistência</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-state"><svg class="icon"><use href="#icon-calendar"/></svg><strong>Nenhum pedido neste filtro</strong><p>Os agendamentos e compras feitos no site aparecerão aqui.</p></div>';
+  lista.querySelectorAll('[data-pedido-status]').forEach(btn => {
+    btn.addEventListener('click', () => atualizarStatusPedido(btn.dataset.id, btn.dataset.pedidoStatus));
+  });
+};
+
+// ----- Novo Agendamento Manual -----
+function abrirModalNovoAgendamento() {
+  const modal = document.getElementById('modalAgendamento');
+  if (!modal) return;
+  document.getElementById('form-novo-agendamento').reset();
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+}
+
+function fecharModalNovoAgendamento() {
+  const modal = document.getElementById('modalAgendamento');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+}
+
+async function criarNovoAgendamento(e) {
+  e.preventDefault();
+  const nome = document.getElementById('ag-nome').value.trim();
+  const whatsapp = document.getElementById('ag-whatsapp').value.trim();
+  const servico = document.getElementById('ag-servico').value.trim();
+  const data = document.getElementById('ag-data').value;
+  const horario = document.getElementById('ag-horario').value;
+  const total = parseFloat(document.getElementById('ag-total').value) || null;
+  const observacoes = document.getElementById('ag-observacoes').value.trim();
+
+  const { error } = await supabaseClient.from('agendamentos').insert({
+    nome, whatsapp, servico, data, horario, total, observacoes,
+    status: 'confirmado', tipo: 'agendamento'
+  });
+  if (error) {
+    avisar(`Erro ao criar agendamento: ${error.message}`, 'error');
+    return;
+  }
+  avisar('Agendamento criado com sucesso!', 'success');
+  fecharModalNovoAgendamento();
+  carregarAgendamentos();
+  carregarDashboard();
+}
+
+// ----- Expediente -----
+const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+let expedienteCache = [];
+let indisponibilidadesCache = [];
+
+async function carregarExpediente() {
+  const { data, error } = await supabaseClient.from('expediente').select('*').order('dia_semana');
+  if (error) {
+    console.error('Erro ao carregar expediente:', error);
+    return;
+  }
+  expedienteCache = data || [];
+  renderizarExpediente();
+}
+
+function renderizarExpediente() {
+  const lista = document.getElementById('lista-expediente');
+  if (!lista) return;
+  
+  // Garantir que temos todos os 7 dias
+  const diasCompletos = [];
+  for (let i = 0; i < 7; i++) {
+    const existente = expedienteCache.find(e => e.dia_semana === i);
+    diasCompletos.push(existente || {
+      dia_semana: i, horario_inicio: '09:00', horario_fim: '18:00',
+      intervalo_entre_atendimentos: 60, ativo: i > 0 && i < 6
+    });
+  }
+  
+  lista.innerHTML = diasCompletos.map(d => `
+    <div class="expediente-item" data-dia="${d.dia_semana}">
+      <div class="dia-nome">${diasSemana[d.dia_semana]}</div>
+      <input type="time" class="exp-inicio" value="${d.horario_inicio || '09:00'}">
+      <input type="time" class="exp-fim" value="${d.horario_fim || '18:00'}">
+      <input type="number" class="exp-intervalo" value="${d.intervalo_entre_atendimentos || 60}" min="15" step="15">
+      <div class="switch ${d.ativo ? 'ativo' : ''}" data-dia="${d.dia_semana}"></div>
+    </div>
+  `).join('');
+  
+  // Eventos dos switches
+  lista.querySelectorAll('.switch').forEach(sw => {
+    sw.addEventListener('click', () => sw.classList.toggle('ativo'));
+  });
+}
+
+async function salvarExpediente() {
+  const itens = document.querySelectorAll('.expediente-item');
+  const promessas = [];
+  
+  itens.forEach(item => {
+    const dia = parseInt(item.dataset.dia);
+    const inicio = item.querySelector('.exp-inicio').value;
+    const fim = item.querySelector('.exp-fim').value;
+    const intervalo = parseInt(item.querySelector('.exp-intervalo').value) || 60;
+    const ativo = item.querySelector('.switch').classList.contains('ativo');
+    
+    const existente = expedienteCache.find(e => e.dia_semana === dia);
+    if (existente) {
+      promessas.push(supabaseClient.from('expediente').update({
+        horario_inicio: inicio, horario_fim: fim,
+        intervalo_entre_atendimentos: intervalo, ativo
+      }).eq('id', existente.id));
+    } else {
+      promessas.push(supabaseClient.from('expediente').insert({
+        dia_semana: dia, horario_inicio: inicio, horario_fim: fim,
+        intervalo_entre_atendimentos: intervalo, ativo
+      }));
+    }
+  });
+  
+  try {
+    await Promise.all(promessas);
+    avisar('Expediente salvo com sucesso!', 'success');
+    carregarExpediente();
+  } catch (erro) {
+    avisar(`Erro ao salvar: ${erro.message}`, 'error');
+  }
+}
+
+function replicarExpediente() {
+  avisar('Expediente replicado! Os horários já estão ativos para todos os meses.', 'success');
+}
+
+// ----- Indisponibilidades -----
+async function carregarIndisponibilidades() {
+  const { data, error } = await supabaseClient.from('indisponibilidades').select('*').order('data', { ascending: true });
+  if (error) {
+    console.error('Erro ao carregar indisponibilidades:', error);
+    return;
+  }
+  indisponibilidadesCache = data || [];
+  renderizarIndisponibilidades();
+}
+
+function renderizarIndisponibilidades() {
+  const lista = document.getElementById('lista-indisponibilidades');
+  if (!lista) return;
+  
+  const hoje = new Date().toISOString().split('T')[0];
+  const futuras = indisponibilidadesCache.filter(i => i.data >= hoje && i.ativo !== false);
+  
+  lista.innerHTML = futuras.length ? futuras.map(i => `
+    <div class="indisponibilidade-item">
+      <div class="info">
+        <strong>${formatarDataBR(i.data)} ${i.horario_inicio ? `· ${i.horario_inicio} às ${i.horario_fim || '--:--'}` : '· Dia todo'}</strong>
+        ${i.motivo ? `<small>${esc(i.motivo)}</small>` : ''}
+      </div>
+      <button class="btn-ghost delete" type="button" data-excluir-ind="${esc(i.id)}">
+        <svg class="icon icon-sm"><use href="#icon-trash"/></svg>Excluir
+      </button>
+    </div>
+  `).join('') : '<div class="empty-state"><svg class="icon"><use href="#icon-calendar"/></svg><strong>Nenhuma indisponibilidade</strong><p>Você está disponível em todos os horários configurados.</p></div>';
+  
+  lista.querySelectorAll('[data-excluir-ind]').forEach(btn => {
+    btn.addEventListener('click', () => excluirIndisponibilidade(btn.dataset.excluirInd));
+  });
+}
+
+function formatarDataBR(dataISO) {
+  const partes = dataISO.split('-');
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+function abrirModalIndisponibilidade() {
+  const modal = document.getElementById('modalIndisponibilidade');
+  if (!modal) return;
+  document.getElementById('form-indisponibilidade').reset();
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+}
+
+function fecharModalIndisponibilidade() {
+  const modal = document.getElementById('modalIndisponibilidade');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+}
+
+async function criarIndisponibilidade(e) {
+  e.preventDefault();
+  const data = document.getElementById('ind-data').value;
+  const inicio = document.getElementById('ind-inicio').value || null;
+  const fim = document.getElementById('ind-fim').value || null;
+  const motivo = document.getElementById('ind-motivo').value.trim() || null;
+  
+  const { error } = await supabaseClient.from('indisponibilidades').insert({ data, horario_inicio: inicio, horario_fim: fim, motivo });
+  if (error) {
+    avisar(`Erro: ${error.message}`, 'error');
+    return;
+  }
+  avisar('Indisponibilidade adicionada!', 'success');
+  fecharModalIndisponibilidade();
+  carregarIndisponibilidades();
+}
+
+async function excluirIndisponibilidade(id) {
+  const { error } = await supabaseClient.from('indisponibilidades').delete().eq('id', id);
+  if (error) {
+    avisar(`Erro ao excluir: ${error.message}`, 'error');
+    return;
+  }
+  avisar('Indisponibilidade removida.', 'success');
+  carregarIndisponibilidades();
+}
+
+// ----- Relatórios -----
+let relatorioDataInicio = null;
+let relatorioDataFim = null;
+
+function inicializarFiltrosRelatorio() {
+  const hoje = new Date();
+  const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  document.getElementById('rel-data-inicio').value = primeiroDiaMes.toISOString().split('T')[0];
+  document.getElementById('rel-data-fim').value = hoje.toISOString().split('T')[0];
+}
+
+function filtrarAgendamentosPorPeriodo(agendamentos) {
+  const inicio = document.getElementById('rel-data-inicio').value;
+  const fim = document.getElementById('rel-data-fim').value;
+  
+  return agendamentos.filter(a => {
+    if (!a.data) return false;
+    if (inicio && a.data < inicio) return false;
+    if (fim && a.data > fim) return false;
+    return true;
+  });
+}
+
+async function carregarRelatorios() {
+  const { data: agendamentos, error } = await supabaseClient.from('agendamentos').select('*');
+  if (error) {
+    console.error('Erro ao carregar relatórios:', error);
+    return;
+  }
+  
+  const filtrados = filtrarAgendamentosPorPeriodo(agendamentos || []);
+  const aceitos = filtrados.filter(a => a.status === 'confirmado' || a.status === 'aceito' || a.status === 'concluido');
+  
+  // Cards
+  const faturamentoTotal = aceitos.reduce((sum, a) => sum + (Number(a.total) || 0), 0);
+  const ticketMedio = aceitos.length ? faturamentoTotal / aceitos.length : 0;
+  const taxaConversao = filtrados.length ? (aceitos.length / filtrados.length * 100) : 0;
+  
+  document.getElementById('rel-faturamento-total').textContent = dinheiro(faturamentoTotal);
+  document.getElementById('rel-total-agendamentos').textContent = aceitos.length;
+  document.getElementById('rel-ticket-medio').textContent = dinheiro(ticketMedio);
+  document.getElementById('rel-taxa-conversao').textContent = `${taxaConversao.toFixed(0)}%`;
+  
+  // Gráfico de faturamento mensal
+  renderizarGraficoFaturamento(aceitos);
+  
+  // Produtos mais/menos vendidos
+  renderizarRankingProdutos(aceitos);
+  
+  // Massagens mais/menos solicitadas
+  renderizarRankingMassagens(aceitos);
+}
+
+function renderizarGraficoFaturamento(agendamentos) {
+  const container = document.getElementById('grafico-faturamento');
+  if (!container) return;
+  
+  // Agrupar por mês
+  const meses = {};
+  const nomesMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  
+  agendamentos.forEach(a => {
+    if (!a.data) return;
+    const partes = a.data.split('-');
+    const chave = `${partes[0]}-${partes[1]}`;
+    if (!meses[chave]) meses[chave] = 0;
+    meses[chave] += Number(a.total) || 0;
+  });
+  
+  const chaves = Object.keys(meses).sort().slice(-6); // Últimos 6 meses
+  if (!chaves.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--admin-muted);width:100%">Sem dados para o período selecionado.</div>';
+    return;
+  }
+  
+  const maxValor = Math.max(...chaves.map(k => meses[k]));
+  
+  container.innerHTML = chaves.map(chave => {
+    const [ano, mes] = chave.split('-');
+    const valor = meses[chave];
+    const altura = maxValor > 0 ? (valor / maxValor * 250) : 0;
+    return `<div class="grafico-barra">
+      <div class="grafico-barra-valor">${dinheiro(valor)}</div>
+      <div class="grafico-barra-fill" style="height:${altura}px"></div>
+      <div class="grafico-barra-label">${nomesMeses[parseInt(mes)-1]}/${ano.slice(-2)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderizarRankingProdutos(agendamentos) {
+  const container = document.getElementById('rel-produtos');
+  if (!container) return;
+  
+  const contagem = {};
+  agendamentos.forEach(a => {
+    const itens = parseItensPedido(a);
+    itens.filter(i => i.tipo === 'produto').forEach(i => {
+      const nome = i.title || i.nome || 'Produto';
+      if (!contagem[nome]) contagem[nome] = { qtd: 0, valor: 0 };
+      contagem[nome].qtd += Number(i.quantidade) || 1;
+      contagem[nome].valor += (Number(i.price) || 0) * (Number(i.quantidade) || 1);
+    });
+  });
+  
+  const lista = Object.entries(contagem)
+    .map(([nome, d]) => ({ nome, ...d }))
+    .sort((a, b) => b.qtd - a.qtd);
+  
+  if (!lista.length) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--admin-muted);font-size:13px">Sem vendas de produtos no período.</div>';
+    return;
+  }
+  
+  const maisVendido = lista[0];
+  const menosVendido = lista[lista.length - 1];
+  
+  container.innerHTML = `
+    <div class="relatorio-item destaque">
+      <div class="info">
+        <strong>🏆 ${esc(maisVendido.nome)}</strong>
+        <small>Mais vendido · ${maisVendido.qtd} unidades</small>
+      </div>
+      <div class="valor">${dinheiro(maisVendido.valor)}</div>
+    </div>
+    ${lista.length > 1 ? `
+    <div class="relatorio-item">
+      <div class="info">
+        <strong>📉 ${esc(menosVendido.nome)}</strong>
+        <small>Menos vendido · ${menosVendido.qtd} unidades</small>
+      </div>
+      <div class="valor">${dinheiro(menosVendido.valor)}</div>
+    </div>
+    ` : ''}
+    ${lista.slice(1, -1).map(item => `
+    <div class="relatorio-item">
+      <div class="info">
+        <strong>${esc(item.nome)}</strong>
+        <small>${item.qtd} unidades</small>
+      </div>
+      <div class="valor">${dinheiro(item.valor)}</div>
+    </div>
+    `).join('')}
+  `;
+}
+
+function renderizarRankingMassagens(agendamentos) {
+  const container = document.getElementById('rel-massagens');
+  if (!container) return;
+  
+  const contagem = {};
+  agendamentos.forEach(a => {
+    const itens = parseItensPedido(a);
+    const servicos = itens.filter(i => i.tipo !== 'produto');
+    if (servicos.length) {
+      servicos.forEach(i => {
+        const nome = i.title || i.nome || 'Serviço';
+        if (!contagem[nome]) contagem[nome] = { qtd: 0, valor: 0 };
+        contagem[nome].qtd += Number(i.quantidade) || 1;
+        contagem[nome].valor += (Number(i.price) || 0) * (Number(i.quantidade) || 1);
+      });
+    } else if (a.servico && tipoPedido(a) === 'agendamento') {
+      const nome = a.servico;
+      if (!contagem[nome]) contagem[nome] = { qtd: 0, valor: 0 };
+      contagem[nome].qtd += 1;
+      contagem[nome].valor += Number(a.total) || 0;
+    }
+  });
+  
+  const lista = Object.entries(contagem)
+    .map(([nome, d]) => ({ nome, ...d }))
+    .sort((a, b) => b.qtd - a.qtd);
+  
+  if (!lista.length) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--admin-muted);font-size:13px">Sem agendamentos no período.</div>';
+    return;
+  }
+  
+  const maisSolicitada = lista[0];
+  const menosSolicitada = lista[lista.length - 1];
+  
+  container.innerHTML = `
+    <div class="relatorio-item destaque">
+      <div class="info">
+        <strong>🏆 ${esc(maisSolicitada.nome)}</strong>
+        <small>Mais solicitada · ${maisSolicitada.qtd} vezes</small>
+      </div>
+      <div class="valor">${dinheiro(maisSolicitada.valor)}</div>
+    </div>
+    ${lista.length > 1 ? `
+    <div class="relatorio-item">
+      <div class="info">
+        <strong>📉 ${esc(menosSolicitada.nome)}</strong>
+        <small>Menos solicitada · ${menosSolicitada.qtd} vezes</small>
+      </div>
+      <div class="valor">${dinheiro(menosSolicitada.valor)}</div>
+    </div>
+    ` : ''}
+    ${lista.slice(1, -1).map(item => `
+    <div class="relatorio-item">
+      <div class="info">
+        <strong>${esc(item.nome)}</strong>
+        <small>${item.qtd} agendamentos</small>
+      </div>
+      <div class="valor">${dinheiro(item.valor)}</div>
+    </div>
+    `).join('')}
+  `;
+}
+
+// ----- Inicialização das novas funcionalidades -----
+document.addEventListener('DOMContentLoaded', () => {
+  // Novo agendamento
+  document.getElementById('btn-novo-agendamento')?.addEventListener('click', abrirModalNovoAgendamento);
+  document.querySelectorAll('[data-close-agendamento]').forEach(b => b.addEventListener('click', fecharModalNovoAgendamento));
+  document.getElementById('form-novo-agendamento')?.addEventListener('submit', criarNovoAgendamento);
+  document.getElementById('modalAgendamento')?.addEventListener('click', e => {
+    if (e.target.id === 'modalAgendamento') fecharModalNovoAgendamento();
+  });
+  
+  // Expediente
+  document.getElementById('btn-salvar-expediente')?.addEventListener('click', salvarExpediente);
+  document.getElementById('btn-replicar-expediente')?.addEventListener('click', replicarExpediente);
+  
+  // Indisponibilidades
+  document.getElementById('btn-nova-indisponibilidade')?.addEventListener('click', abrirModalIndisponibilidade);
+  document.querySelectorAll('[data-close-indisponibilidade]').forEach(b => b.addEventListener('click', fecharModalIndisponibilidade));
+  document.getElementById('form-indisponibilidade')?.addEventListener('submit', criarIndisponibilidade);
+  document.getElementById('modalIndisponibilidade')?.addEventListener('click', e => {
+    if (e.target.id === 'modalIndisponibilidade') fecharModalIndisponibilidade();
+  });
+  
+  // Relatórios
+  inicializarFiltrosRelatorio();
+  document.getElementById('btn-filtrar-relatorio')?.addEventListener('click', carregarRelatorios);
+  
+  // Hook para carregar dados quando as abas forem abertas
+  const observarAbas = new MutationObserver(() => {
+    if (document.getElementById('aba-expediente')?.classList.contains('ativa')) {
+      carregarExpediente();
+      carregarIndisponibilidades();
+    }
+    if (document.getElementById('aba-relatorios')?.classList.contains('ativa')) {
+      carregarRelatorios();
+    }
+  });
+  const conteudo = document.querySelector('.conteudo');
+  if (conteudo) observarAbas.observe(conteudo, { attributes: true, subtree: true, attributeFilter: ['class'] });
+  
+  // ESC para fechar novos modais
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (document.getElementById('modalAgendamento')?.classList.contains('open')) fecharModalNovoAgendamento();
+      if (document.getElementById('modalIndisponibilidade')?.classList.contains('open')) fecharModalIndisponibilidade();
+    }
+  });
+});
