@@ -771,6 +771,82 @@
       color:#FFF8EC;
       border-color:var(--admin-espresso);
     }
+    /* ===== Novos estilos para funcionalidades adicionais ===== */
+    .filtros-periodo{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;}
+    .filtros-periodo .field{min-width:160px;margin-bottom:0;}
+    .expediente-lista{display:grid;gap:12px;}
+    .expediente-item{
+      display:grid;grid-template-columns:140px 1fr 1fr 120px auto;
+      gap:12px;align-items:center;padding:14px 16px;
+      background:var(--admin-linen);border-radius:var(--admin-radius-sm);
+      border:1px solid var(--admin-line);
+    }
+    .expediente-item .dia-nome{font-weight:700;color:var(--admin-espresso);font-size:14px;}
+    .expediente-item input[type=time]{
+      width:100%;padding:10px 12px;border:1.5px solid var(--admin-line);
+      border-radius:var(--admin-radius-sm);background:var(--admin-white);font-size:14px;
+    }
+    .expediente-item input[type=number]{
+      width:100%;padding:10px 12px;border:1.5px solid var(--admin-line);
+      border-radius:var(--admin-radius-sm);background:var(--admin-white);font-size:14px;
+    }
+    .expediente-item .switch{
+      position:relative;width:48px;height:26px;background:#ddd;border-radius:999px;
+      cursor:pointer;transition:background .2s;
+    }
+    .expediente-item .switch.ativo{background:var(--admin-moss);}
+    .expediente-item .switch::after{
+      content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;
+      background:#fff;border-radius:50%;transition:transform .2s;
+    }
+    .expediente-item .switch.ativo::after{transform:translateX(22px);}
+    .indisponibilidade-item{
+      display:flex;align-items:center;justify-content:space-between;gap:16px;
+      padding:14px 16px;background:var(--admin-clay-soft);
+      border-radius:var(--admin-radius-sm);border:1px solid #E8C9B8;
+    }
+    .indisponibilidade-item .info{display:flex;flex-direction:column;gap:4px;}
+    .indisponibilidade-item .info strong{color:var(--admin-clay-deep);font-size:14px;}
+    .indisponibilidade-item .info small{color:var(--admin-muted);font-size:12px;}
+    .relatorios-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;}
+    .grafico-container{
+      min-height:300px;padding:20px 0;display:flex;align-items:flex-end;gap:8px;
+      border-bottom:2px solid var(--admin-line);position:relative;
+    }
+    .grafico-barra{
+      flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;
+    }
+    .grafico-barra-fill{
+      width:100%;max-width:50px;background:linear-gradient(180deg,#B85438,#A8482E);
+      border-radius:8px 8px 0 0;transition:height .6s var(--ease);min-height:4px;
+    }
+    .grafico-barra-label{font-size:11px;color:var(--admin-muted);font-weight:600;text-align:center;}
+    .grafico-barra-valor{font-size:12px;font-weight:700;color:var(--admin-espresso);font-family:var(--font-display);}
+    .relatorio-lista{display:flex;flex-direction:column;gap:10px;}
+    .relatorio-item{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px 14px;background:var(--admin-linen);border-radius:var(--admin-radius-sm);
+      border:1px solid var(--admin-line);
+    }
+    .relatorio-item .info{display:flex;flex-direction:column;gap:2px;min-width:0;}
+    .relatorio-item .info strong{font-size:14px;color:var(--admin-espresso);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .relatorio-item .info small{font-size:11px;color:var(--admin-muted);}
+    .relatorio-item .valor{font-weight:700;color:var(--admin-clay-deep);font-family:var(--font-display);font-size:16px;}
+    .relatorio-item.destaque{background:var(--admin-moss-soft);border-color:#C8D4AE;}
+    .relatorio-item.destaque .valor{color:var(--admin-moss);}
+    .btn-whatsapp{
+      display:inline-flex;align-items:center;gap:6px;padding:8px 12px;
+      border-radius:var(--admin-radius-sm);font-weight:700;font-size:12.5px;
+      background:#25D366;color:#fff;border:1.5px solid #1EBE5D;
+      transition:all .2s var(--ease);cursor:pointer;text-decoration:none;
+    }
+    .btn-whatsapp:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(37,211,102,.3);}
+    .btn-whatsapp .icon{width:14px;height:14px;}
+    @media(max-width:900px){
+      .expediente-item{grid-template-columns:1fr;gap:8px;}
+      .relatorios-grid{grid-template-columns:1fr;}
+      .filtros-periodo{flex-direction:column;align-items:stretch;}
+    }
     .btn-acao{
       border-radius:10px;
       padding:8px 12px;
@@ -1345,6 +1421,10 @@
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
         <circle cx="12" cy="7" r="4"/>
       </symbol>
+      <symbol id="icon-chart" viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"/><line x1="4" y1="20" x2="4" y2="4"/><rect x="7" y="12" width="3" height="8"/><rect x="12" y="8" width="3" height="12"/><rect x="17" y="4" width="3" height="16"/></symbol>
+      <symbol id="icon-clock-2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="12"/><line x1="12" y1="12" x2="16" y2="14"/></symbol>
+      <symbol id="icon-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+      <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
       <symbol id="icon-afago" viewBox="0 0 24 24">
         <path d="M12 3C7.5 3 4 6 4 10c0 2.5 1.5 4.5 3.5 5.8L9 21l3-2 3 2 1.5-5.2C18.5 14.5 20 12.5 20 10c0-4-3.5-7-8-7z"/>
         <circle cx="10" cy="10" r="1.2" fill="currentColor" stroke="none"/>
@@ -1471,6 +1551,14 @@
         <button class="aba-btn" data-aba="agendamentos">
           <svg class="icon"><use href="#icon-calendar"/></svg>
           Agendamentos
+        </button>
+        <button class="aba-btn" data-aba="expediente">
+          <svg class="icon"><use href="#icon-clock-2"/></svg>
+          Expediente
+        </button>
+        <button class="aba-btn" data-aba="relatorios">
+          <svg class="icon"><use href="#icon-chart"/></svg>
+          Relatórios
         </button>
         <button class="aba-btn" data-aba="contatos">
           <svg class="icon"><use href="#icon-message"/></svg>
@@ -1843,14 +1931,145 @@
               <h2>Pedidos e agendamentos</h2>
               <p>Tudo que o cliente envia para o WhatsApp aparece aqui, com valor, itens e status.</p>
             </div>
+            <button class="btn btn-primary btn-add" id="btn-novo-agendamento">
+              <svg class="icon icon-md"><use href="#icon-plus"/></svg>
+              Novo agendamento
+            </button>
           </div>
           <div class="filtros-pedido" id="filtros-agendamentos">
             <button class="filtro-pedido is-active" type="button" data-filtro-pedido="todos">Todos</button>
             <button class="filtro-pedido" type="button" data-filtro-pedido="agendamento">Massagens e pacotes</button>
             <button class="filtro-pedido" type="button" data-filtro-pedido="produto">Produtos</button>
             <button class="filtro-pedido" type="button" data-filtro-pedido="pendente">Pendentes</button>
+            <button class="filtro-pedido" type="button" data-filtro-pedido="aceito">Aceitos</button>
+            <button class="filtro-pedido" type="button" data-filtro-pedido="recusado">Recusados</button>
+            <button class="filtro-pedido" type="button" data-filtro-pedido="desistencia">Desistências</button>
           </div>
           <div class="lista" id="lista-agendamentos"></div>
+        </div>
+
+        <!-- ===== EXPEDIENTE ===== -->
+        <div id="aba-expediente" class="conteudo-aba">
+          <div class="page-head">
+            <div class="page-head-text">
+              <span class="eyebrow">Horários de atendimento</span>
+              <h2>Expediente</h2>
+              <p>Defina seus horários disponíveis, replique para os próximos meses e bloqueie dias/horários específicos.</p>
+            </div>
+          </div>
+
+          <div class="form-bloco">
+            <div class="form-top">
+              <div>
+                <h3>Horários por dia da semana</h3>
+                <span>Configure os horários em que você está disponível para atendimentos.</span>
+              </div>
+            </div>
+            <div id="lista-expediente" class="expediente-lista"></div>
+            <div class="form-actions" style="margin-top:20px">
+              <button class="btn btn-primary" type="button" id="btn-salvar-expediente">
+                <svg class="icon icon-md"><use href="#icon-check"/></svg>
+                Salvar expediente
+              </button>
+              <button class="btn btn-secondary" type="button" id="btn-replicar-expediente">
+                <svg class="icon icon-md"><use href="#icon-copy"/></svg>
+                Replicar para próximos meses
+              </button>
+            </div>
+          </div>
+
+          <div class="form-bloco">
+            <div class="form-top">
+              <div>
+                <h3>Indisponibilidades</h3>
+                <span>Bloqueie dias ou horários específicos quando tiver compromissos.</span>
+              </div>
+              <button class="btn btn-secondary" type="button" id="btn-nova-indisponibilidade">
+                <svg class="icon icon-md"><use href="#icon-plus"/></svg>
+                Adicionar
+              </button>
+            </div>
+            <div id="lista-indisponibilidades" class="lista"></div>
+          </div>
+        </div>
+
+        <!-- ===== RELATÓRIOS ===== -->
+        <div id="aba-relatorios" class="conteudo-aba">
+          <div class="page-head">
+            <div class="page-head-text">
+              <span class="eyebrow">Análise de desempenho</span>
+              <h2>Relatórios</h2>
+              <p>Acompanhe seu faturamento, produtos mais vendidos e serviços mais solicitados.</p>
+            </div>
+            <div class="filtros-periodo">
+              <div class="field" style="margin-bottom:0">
+                <label>Data inicial</label>
+                <input type="date" id="rel-data-inicio">
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label>Data final</label>
+                <input type="date" id="rel-data-fim">
+              </div>
+              <button class="btn btn-primary" type="button" id="btn-filtrar-relatorio" style="align-self:flex-end">
+                <svg class="icon icon-md"><use href="#icon-check"/></svg>
+                Filtrar
+              </button>
+            </div>
+          </div>
+
+          <div class="cards-dashboard" id="cards-relatorios">
+            <div class="card-dash" data-tema="clay">
+              <div class="card-icon-wrap tema-clay"><svg class="icon"><use href="#icon-bag"/></svg></div>
+              <div class="numero" id="rel-faturamento-total">R$ 0,00</div>
+              <div class="rotulo">Faturamento total</div>
+            </div>
+            <div class="card-dash" data-tema="moss">
+              <div class="card-icon-wrap tema-moss"><svg class="icon"><use href="#icon-calendar"/></svg></div>
+              <div class="numero" id="rel-total-agendamentos">0</div>
+              <div class="rotulo">Total de agendamentos</div>
+            </div>
+            <div class="card-dash" data-tema="honey">
+              <div class="card-icon-wrap tema-honey"><svg class="icon"><use href="#icon-package"/></svg></div>
+              <div class="numero" id="rel-ticket-medio">R$ 0,00</div>
+              <div class="rotulo">Ticket médio</div>
+            </div>
+            <div class="card-dash" data-tema="espresso">
+              <div class="card-icon-wrap tema-espresso"><svg class="icon"><use href="#icon-check"/></svg></div>
+              <div class="numero" id="rel-taxa-conversao">0%</div>
+              <div class="rotulo">Taxa de aceite</div>
+            </div>
+          </div>
+
+          <div class="form-bloco">
+            <div class="form-top">
+              <div>
+                <h3>Faturamento mensal</h3>
+                <span>Evolução do faturamento ao longo dos meses.</span>
+              </div>
+            </div>
+            <div class="grafico-container" id="grafico-faturamento"></div>
+          </div>
+
+          <div class="relatorios-grid">
+            <div class="form-bloco">
+              <div class="form-top">
+                <div>
+                  <h3>Produtos</h3>
+                  <span>Mais e menos vendidos no período.</span>
+                </div>
+              </div>
+              <div id="rel-produtos" class="relatorio-lista"></div>
+            </div>
+            <div class="form-bloco">
+              <div class="form-top">
+                <div>
+                  <h3>Massagens / Serviços</h3>
+                  <span>Mais e menos solicitados no período.</span>
+                </div>
+              </div>
+              <div id="rel-massagens" class="relatorio-lista"></div>
+            </div>
+          </div>
         </div>
 
         <!-- ===== CONTATOS / MENSAGENS ===== -->
@@ -1971,6 +2190,106 @@
           <svg class="icon icon-md"><use href="#icon-trash"/></svg>
           Excluir definitivamente
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL NOVO AGENDAMENTO ===== -->
+  <div id="modalAgendamento" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-glow"></div>
+      <div class="modal-head">
+        <div class="modal-head-text">
+          <span class="modal-kicker">AFAGO · AGENDAMENTO</span>
+          <h3>Novo agendamento manual</h3>
+          <p>Cadastre um agendamento diretamente no painel.</p>
+        </div>
+        <button class="modal-close" type="button" data-close-agendamento aria-label="Fechar">
+          <svg class="icon"><use href="#icon-close"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="form-novo-agendamento" class="admin-form">
+          <div class="field">
+            <label for="ag-nome">Nome do cliente</label>
+            <input type="text" id="ag-nome" placeholder="Nome completo" required>
+          </div>
+          <div class="field">
+            <label for="ag-whatsapp">WhatsApp</label>
+            <input type="tel" id="ag-whatsapp" placeholder="(11) 99999-9999" required>
+          </div>
+          <div class="field">
+            <label for="ag-servico">Serviço / Massagem</label>
+            <input type="text" id="ag-servico" placeholder="Ex: Massagem relaxante" required>
+          </div>
+          <div class="field">
+            <label for="ag-data">Data</label>
+            <input type="date" id="ag-data" required>
+          </div>
+          <div class="field">
+            <label for="ag-horario">Horário</label>
+            <input type="time" id="ag-horario" required>
+          </div>
+          <div class="field">
+            <label for="ag-total">Valor total (R$)</label>
+            <input type="number" step="0.01" min="0" id="ag-total" placeholder="0,00">
+          </div>
+          <div class="field field-full">
+            <label for="ag-observacoes">Observações</label>
+            <textarea id="ag-observacoes" placeholder="Anotações sobre o atendimento"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-secondary" type="button" data-close-agendamento>Cancelar</button>
+            <button class="btn btn-primary" type="submit">
+              <svg class="icon icon-md"><use href="#icon-check"/></svg>
+              Criar agendamento
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL NOVA INDISPONIBILIDADE ===== -->
+  <div id="modalIndisponibilidade" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-glow"></div>
+      <div class="modal-head">
+        <div class="modal-head-text">
+          <span class="modal-kicker">AFAGO · EXPEDIENTE</span>
+          <h3>Nova indisponibilidade</h3>
+          <p>Bloqueie um dia ou horário específico.</p>
+        </div>
+        <button class="modal-close" type="button" data-close-indisponibilidade aria-label="Fechar">
+          <svg class="icon"><use href="#icon-close"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="form-indisponibilidade" class="admin-form">
+          <div class="field">
+            <label for="ind-data">Data</label>
+            <input type="date" id="ind-data" required>
+          </div>
+          <div class="field">
+            <label for="ind-inicio">Horário início (opcional)</label>
+            <input type="time" id="ind-inicio">
+          </div>
+          <div class="field">
+            <label for="ind-fim">Horário fim (opcional)</label>
+            <input type="time" id="ind-fim">
+          </div>
+          <div class="field field-full">
+            <label for="ind-motivo">Motivo (opcional)</label>
+            <input type="text" id="ind-motivo" placeholder="Ex: Consulta médica">
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-secondary" type="button" data-close-indisponibilidade>Cancelar</button>
+            <button class="btn btn-primary" type="submit">
+              <svg class="icon icon-md"><use href="#icon-check"/></svg>
+              Bloquear horário
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
