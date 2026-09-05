@@ -6,17 +6,36 @@
 <title>Afago Bem-Estar — Massagens & Produtos Artesanais</title>
 <meta name="description" content="Massagens terapêuticas e produtos naturais feitos à mão. Agende sua massagem ou conheça nossa linha de sabonetes artesanais.">
 <meta name="theme-color" content="#a85a3c">
-<link rel="icon" type="image/png" href="assets/logo.png">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.afagobemestar.com.br/">
+<link rel="icon" type="image/png" href="https://www.afagobemestar.com.br/assets/logo.png">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://www.afagobemestar.com.br/">
+<meta property="og:site_name" content="Afago Bem-Estar">
 <meta property="og:title" content="Afago Bem-Estar — Massagens & Produtos Artesanais">
 <meta property="og:description" content="Massagens terapêuticas e produtos naturais feitos à mão. Um afago para o corpo, um respiro para a alma.">
-<meta property="og:image" content="assets/logo.png">
+<meta property="og:image" content="https://www.afagobemestar.com.br/assets/logo.png">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Afago Bem-Estar — Massagens & Produtos Artesanais">
+<meta name="twitter:description" content="Massagens terapêuticas e produtos naturais feitos à mão. Um afago para o corpo, um respiro para a alma.">
+<meta name="twitter:image" content="https://www.afagobemestar.com.br/assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HealthAndBeautyBusiness",
+  "name": "Afago Bem-Estar",
+  "url": "https://www.afagobemestar.com.br/",
+  "image": "https://www.afagobemestar.com.br/assets/logo.png",
+  "telephone": "+5511920113729",
+  "sameAs": ["https://www.instagram.com/afagobemestar/"]
+}
+</script>
 </head>
 <body>
 
@@ -288,10 +307,11 @@
         </div>
 
         <div class="form-card">
-          <form id="contactForm">
-            <div class="form-row"><label for="cName">Nome</label><input id="cName" type="text" required placeholder="Seu nome"></div>
-            <div class="form-row"><label for="cPhone">WhatsApp</label><input id="cPhone" type="tel" required placeholder="(42) 8426-4566" inputmode="tel" autocomplete="tel"></div>
-            <div class="form-row"><label for="cMsg">Mensagem</label><textarea id="cMsg" rows="4" required placeholder="Como podemos ajudar?"></textarea></div>
+          <form id="contactForm" autocomplete="on">
+            <div class="form-row"><label for="cName">Nome</label><input id="cName" type="text" required placeholder="Seu nome" maxlength="80" autocomplete="name"></div>
+            <div class="form-row"><label for="cPhone">WhatsApp</label><input id="cPhone" type="tel" required placeholder="(11) 92011-3729" inputmode="tel" autocomplete="tel" maxlength="20"></div>
+            <div class="form-row"><label for="cMsg">Mensagem</label><textarea id="cMsg" rows="4" required placeholder="Como podemos ajudar?" maxlength="1000"></textarea></div>
+            <div class="hp-field" aria-hidden="true"><label for="cWebsite">Website</label><input id="cWebsite" type="text" tabindex="-1" autocomplete="off"></div>
             <button type="submit" class="btn btn-primary btn-block">Enviar mensagem</button>
           </form>
           <div class="form-success" id="contactSuccess">
@@ -371,9 +391,10 @@
           <div class="form-row"><label for="bDate">Data</label><input id="bDate" type="date" required></div>
           <div class="form-row"><label for="bTime">Horário</label><select id="bTime" required></select></div>
         </div>
-        <div class="form-row"><label for="bName">Nome completo</label><input id="bName" type="text" required placeholder="Seu nome"></div>
-        <div class="form-row"><label for="bPhone">WhatsApp</label><input id="bPhone" type="tel" required placeholder="(42) 8426-4566"></div>
-        <div class="form-row"><label for="bNotes">Observações (opcional)</label><textarea id="bNotes" rows="2" placeholder="Alguma preferência ou observação?"></textarea></div>
+        <div class="form-row"><label for="bName">Nome completo</label><input id="bName" type="text" required placeholder="Seu nome" maxlength="80" autocomplete="name"></div>
+        <div class="form-row"><label for="bPhone">WhatsApp</label><input id="bPhone" type="tel" required placeholder="(11) 92011-3729" maxlength="20" inputmode="tel" autocomplete="tel"></div>
+        <div class="form-row"><label for="bNotes">Observações (opcional)</label><textarea id="bNotes" rows="2" placeholder="Alguma preferência ou observação?" maxlength="500"></textarea></div>
+        <div class="hp-field" aria-hidden="true"><label for="bWebsite">Website</label><input id="bWebsite" type="text" tabindex="-1" autocomplete="off"></div>
         <button type="submit" class="btn btn-primary btn-block">Confirmar agendamento</button>
       </form>
     </div>
@@ -407,7 +428,7 @@
 <div class="toast" id="toast"><svg class="icon"><use href="#icon-check"/></svg><span id="toastText"></span></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="script.js?v=11"></script>
+<script src="script.js?v=12"></script>
 <script>
 (() => {
   const SB_URL="https://sybomoikpbswfpplheve.supabase.co";

@@ -235,9 +235,12 @@ Pronto! Agora ao editar um preço no painel, o site atualiza sozinho sem precisa
 
 O login usa Supabase Auth. Para "Esqueci minha senha":
 
-1. Em **Authentication > URL Configuration**, adicione a URL do painel em **Redirect URLs**:
-   - `https://seu-dominio/admin/admin.html`
-   - `http://localhost:5500/admin/admin.html`
+1. Em **Authentication > URL Configuration**, use:
+   - **Site URL:** `https://www.afagobemestar.com.br`
+   - **Redirect URLs:**
+     - `https://www.afagobemestar.com.br/admin/`
+     - `https://www.afagobemestar.com.br/admin`
+     - `https://www.afagobemestar.com.br/**`
 2. Confirme se o provedor de e-mail está ativo em **Authentication > Emails**.
 
 ### 1.5 Tabela `expediente` (NOVA)

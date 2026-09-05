@@ -43,6 +43,19 @@ let qtyServico = 1;
 const dinheiro = valor => `R$ ${Number(valor || 0).toFixed(2).replace(".", ",")}`;
 const esc = valor => String(valor ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]));
 
+function limparTexto(valor, max = 200) {
+  return String(valor ?? "").replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+function campoHoneypotPreenchido(id) {
+  return Boolean(document.getElementById(id)?.value?.trim());
+}
+
+function whatsappValido(valor) {
+  const digitos = String(valor || "").replace(/\D/g, "");
+  return digitos.length >= 10 && digitos.length <= 13;
+}
+
 function showToast(texto) {
   const toast = document.getElementById("toast");
   const target = document.getElementById("toastText");
@@ -364,15 +377,20 @@ async function salvarPedido(dados) {
 
 async function enviarAgendamento(e) {
   e.preventDefault();
+  if (campoHoneypotPreenchido("bWebsite")) return;
   if (!pedidoServicos.length) {
     showToast("Adicione pelo menos um serviço para agendar.");
     return;
   }
-  const nome = document.getElementById("bName")?.value || "";
-  const whatsapp = document.getElementById("bPhone")?.value || "";
+  const nome = limparTexto(document.getElementById("bName")?.value, 80);
+  const whatsapp = limparTexto(document.getElementById("bPhone")?.value, 20);
   const data = document.getElementById("bDate")?.value || "";
   const horario = document.getElementById("bTime")?.value || "";
-  const observacoes = document.getElementById("bNotes")?.value || "";
+  const observacoes = limparTexto(document.getElementById("bNotes")?.value, 500);
+  if (!nome || !whatsappValido(whatsapp)) {
+    showToast("Informe um nome e um WhatsApp válidos.");
+    return;
+  }
   const total = totalPedidoServicos();
   const servico = textoPedidoServicos();
   const detalhes = pedidoServicos.map(i => `• ${i.title} (${i.tipo}) x${i.quantidade} — ${dinheiro(i.price * i.quantidade)}`).join("\n");
@@ -405,9 +423,14 @@ function configurarContato() {
   if (!form) return;
   form.addEventListener("submit", async e => {
     e.preventDefault();
-    const nome = document.getElementById("cName")?.value || "";
-    const whatsapp = document.getElementById("cPhone")?.value || "";
-    const mensagem = document.getElementById("cMsg")?.value || "";
+    if (campoHoneypotPreenchido("cWebsite")) return;
+    const nome = limparTexto(document.getElementById("cName")?.value, 80);
+    const whatsapp = limparTexto(document.getElementById("cPhone")?.value, 20);
+    const mensagem = limparTexto(document.getElementById("cMsg")?.value, 1000);
+    if (!nome || !whatsappValido(whatsapp) || !mensagem) {
+      showToast("Preencha nome, WhatsApp e mensagem válidos.");
+      return;
+    }
 
     if (supabaseClient) {
       const { error } = await supabaseClient.from("contatos").insert([{ nome, whatsapp, mensagem }]);

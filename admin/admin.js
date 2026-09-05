@@ -120,7 +120,7 @@ function textoPassoAPasso(email) {
 }
 
 function urlRedirecionamentoAdmin() {
-  return `${location.origin}${location.pathname}`;
+  return `${location.origin}/admin/`;
 }
 
 async function enviarRecuperacaoSenha(email) {
