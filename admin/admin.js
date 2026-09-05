@@ -1119,7 +1119,11 @@ async function salvarRegistro(tabela, id, payload, nome) {
   const resposta = id ? await supabaseClient.from(tabela).update(payload).eq('id', id) : await supabaseClient.from(tabela).insert([payload]);
   if (resposta.error) {
     console.error(`Erro ao salvar ${nome}:`, resposta.error);
-    avisar(`Não foi possível salvar ${nome.toLowerCase()}: ${resposta.error.message}`, 'error');
+    if (resposta.error.code === '42501') {
+      avisar(`As permissões do Supabase estão bloqueando esta ação. Rode o arquivo CORRECAO_SUPABASE.sql no SQL Editor do Supabase e tente de novo.`, 'error');
+    } else {
+      avisar(`Não foi possível salvar ${nome.toLowerCase()}: ${resposta.error.message}`, 'error');
+    }
     return false;
   }
   avisar(`${nome} ${id ? 'atualizada' : 'salva'} com sucesso.`, 'success');

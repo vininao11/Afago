@@ -1,5 +1,23 @@
 # Configuração do Afago no Supabase
 
+> ## ⚡ Correção rápida (use isto se site e painel não estão se conversando)
+>
+> Se o site não consegue registrar agendamentos/mensagens ou o painel
+> não consegue editar/salvar nada, é porque as políticas de RLS do
+> Supabase estão bloqueando. Para resolver de uma vez só:
+>
+> 1. Abra o Supabase → **SQL Editor** → **New query**.
+> 2. Copie **todo o conteúdo** do arquivo [`CORRECAO_SUPABASE.sql`](CORRECAO_SUPABASE.sql) na raiz do repositório.
+> 3. Cole no editor e clique em **Run**.
+> 4. Recarregue o site e o painel.
+>
+> Esse script reaplica todas as políticas (site pode criar agendamento/contato,
+> painel pode gerenciar tudo), cria as colunas que faltam em `agendamentos`,
+> garante o bucket público de fotos e liga o Realtime nas 7 tabelas.
+>
+> O passo a passo detalhado abaixo continua servindo caso você prefira
+> aplicar tabela por tabela.
+
 ## 1. Tabelas e colunas necessárias
 
 Crie as tabelas no **SQL Editor** com os comandos abaixo. Se as tabelas já existirem, os comandos `add column if not exists` são seguros e só adicionam o que faltar.

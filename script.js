@@ -336,6 +336,10 @@ async function salvarPedido(dados) {
   for (let i = 0; i < 8; i++) {
     const { error } = await supabaseClient.from("agendamentos").insert([payload]);
     if (!error) return true;
+    if (error.code === "42501") {
+      console.error("RLS bloqueou o insert em agendamentos. Rode CORRECAO_SUPABASE.sql no Supabase.", error);
+      return false;
+    }
     const coluna = colunaAusente(error.message);
     if (coluna && coluna in payload) {
       delete payload[coluna];
@@ -407,7 +411,12 @@ function configurarContato() {
 
     if (supabaseClient) {
       const { error } = await supabaseClient.from("contatos").insert([{ nome, whatsapp, mensagem }]);
-      if (error) console.error("Erro ao salvar contato:", error);
+      if (error) {
+        console.error("Erro ao salvar contato:", error);
+        if (error.code === "42501") {
+          console.error("RLS bloqueou o insert em contatos. Rode CORRECAO_SUPABASE.sql no Supabase.");
+        }
+      }
     }
 
     const texto = `Olá! Sou ${nome}.\nWhatsApp: ${whatsapp}\n\n${mensagem}`;
