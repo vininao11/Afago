@@ -682,6 +682,8 @@ function configurarNavegacao() {
       if (aba === 'pacotes') carregarPacotes();
       if (aba === 'produtos') carregarProdutos();
       if (aba === 'agendamentos') carregarAgendamentos();
+      if (aba === 'expediente') { carregarExpediente(); carregarIndisponibilidades(); }
+      if (aba === 'relatorios') { inicializarFiltrosRelatorio(); carregarRelatorios(); }
       if (aba === 'contatos') carregarContatos();
       if (aba === 'configuracoes') preencherConfiguracoes();
     });
@@ -1313,36 +1315,45 @@ function renderizarExpediente() {
 
 async function salvarExpediente() {
   const itens = document.querySelectorAll('.expediente-item');
-  const promessas = [];
+  let erros = 0;
   
-  itens.forEach(item => {
+  for (const item of itens) {
     const dia = parseInt(item.dataset.dia);
     const inicio = item.querySelector('.exp-inicio').value;
     const fim = item.querySelector('.exp-fim').value;
     const intervalo = parseInt(item.querySelector('.exp-intervalo').value) || 60;
     const ativo = item.querySelector('.switch').classList.contains('ativo');
     
+    const registro = {
+      dia_semana: dia,
+      horario_inicio: inicio,
+      horario_fim: fim,
+      intervalo_entre_atendimentos: intervalo,
+      ativo
+    };
+    
     const existente = expedienteCache.find(e => e.dia_semana === dia);
-    if (existente) {
-      promessas.push(supabaseClient.from('expediente').update({
-        horario_inicio: inicio, horario_fim: fim,
-        intervalo_entre_atendimentos: intervalo, ativo
-      }).eq('id', existente.id));
-    } else {
-      promessas.push(supabaseClient.from('expediente').insert({
-        dia_semana: dia, horario_inicio: inicio, horario_fim: fim,
-        intervalo_entre_atendimentos: intervalo, ativo
-      }));
+    
+    try {
+      if (existente) {
+        const { error } = await supabaseClient.from('expediente').update(registro).eq('id', existente.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabaseClient.from('expediente').insert(registro);
+        if (error) throw error;
+      }
+    } catch (erro) {
+      console.error(`Erro ao salvar dia ${dia}:`, erro);
+      erros++;
     }
-  });
-  
-  try {
-    await Promise.all(promessas);
-    avisar('Expediente salvo com sucesso!', 'success');
-    carregarExpediente();
-  } catch (erro) {
-    avisar(`Erro ao salvar: ${erro.message}`, 'error');
   }
+  
+  if (erros > 0) {
+    avisar(`${erros} dia(s) não foram salvos. Verifique as permissões no Supabase.`, 'error');
+  } else {
+    avisar('Expediente salvo com sucesso!', 'success');
+  }
+  carregarExpediente();
 }
 
 function replicarExpediente() {

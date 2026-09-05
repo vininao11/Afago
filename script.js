@@ -599,6 +599,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   configurarNavegacao();
   configurarMenuScroll();
   configurarCarrinho();
+  await inicializarExpedienteNoSite();
   configurarBooking();
   configurarContato();
   configurarWhatsApp();
@@ -611,16 +612,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 // INTEGRAÇÃO COM EXPEDIENTE E DISPONIBILIDADE
 // ============================================================
 
+// ============================================================
+// INTEGRAÇÃO COM EXPEDIENTE E DISPONIBILIDADE (CORRIGIDO)
+// ============================================================
+
 let expedienteSite = [];
 let indisponibilidadesSite = [];
+let expedienteCarregado = false;
 
 async function carregarExpedienteSite() {
   if (!supabaseClient) return;
   try {
-    const { data } = await supabaseClient.from('expediente').select('*').order('dia_semana');
+    const { data, error } = await supabaseClient.from('expediente').select('*').order('dia_semana');
+    if (error) throw error;
     expedienteSite = data || [];
+    expedienteCarregado = true;
+    console.log('Expediente carregado:', expedienteSite.length, 'dias');
   } catch (e) {
     console.error('Erro ao carregar expediente:', e);
+    expedienteSite = [];
   }
 }
 
@@ -628,60 +638,54 @@ async function carregarIndisponibilidadesSite() {
   if (!supabaseClient) return;
   try {
     const hoje = new Date().toISOString().split('T')[0];
-    const { data } = await supabaseClient.from('indisponibilidades').select('*').gte('data', hoje);
+    const { data, error } = await supabaseClient.from('indisponibilidades').select('*').gte('data', hoje);
+    if (error) throw error;
     indisponibilidadesSite = data || [];
   } catch (e) {
     console.error('Erro ao carregar indisponibilidades:', e);
+    indisponibilidadesSite = [];
   }
 }
 
-function configurarDisponibilidadeData() {
-  const inputData = document.getElementById('bDate');
-  if (!inputData) return;
-  
-  // Data mínima = hoje
-  const hoje = new Date();
-  inputData.min = hoje.toISOString().split('T')[0];
-  
-  // Desabilitar dias indisponíveis no expediente
-  inputData.addEventListener('change', () => {
-    const dataSelecionada = inputData.value;
-    if (!dataSelecionada) return;
-    
-    const data = new Date(dataSelecionada + 'T00:00:00');
-    const diaSemana = data.getDay();
-    
-    // Verificar se o dia está ativo no expediente
-    const expedienteDia = expedienteSite.find(e => e.dia_semana === diaSemana);
-    if (!expedienteDia || !expedienteDia.ativo) {
-      showToast('Este dia da semana não temos atendimento.');
-      inputData.value = '';
-      preencherHorariosDisponiveis(null);
-      return;
-    }
-    
-    // Verificar indisponibilidades específicas
-    const indisponivelDia = indisponibilidadesSite.find(i => i.data === dataSelecionada && !i.horario_inicio);
-    if (indisponivelDia) {
-      showToast(`Estamos indisponíveis nesta data: ${indisponivelDia.motivo || 'Dia reservado'}`);
-      inputData.value = '';
-      preencherHorariosDisponiveis(null);
-      return;
-    }
-    
-    preencherHorariosDisponiveis(expedienteDia, dataSelecionada);
-  });
-}
-
-function preencherHorariosDisponiveis(expedienteDia, dataSelecionada) {
+function preencherHorariosComExpediente() {
   const select = document.getElementById('bTime');
+  const inputData = document.getElementById('bDate');
   if (!select) return;
   
-  if (!expedienteDia) {
+  // Se expediente não foi carregado ou não há dados, usa o comportamento padrão
+  if (!expedienteCarregado || expedienteSite.length === 0) {
+    preencherHorariosPadrao();
+    return;
+  }
+  
+  const dataSelecionada = inputData?.value;
+  if (!dataSelecionada) {
     select.innerHTML = '<option value="">Selecione uma data primeiro</option>';
     return;
   }
   
+  const data = new Date(dataSelecionada + 'T00:00:00');
+  const diaSemana = data.getDay();
+  
+  // Verificar se o dia está ativo no expediente
+  const expedienteDia = expedienteSite.find(e => e.dia_semana === diaSemana);
+  if (!expedienteDia || !expedienteDia.ativo) {
+    showToast('Este dia da semana não temos atendimento.');
+    inputData.value = '';
+    select.innerHTML = '<option value="">Selecione uma data primeiro</option>';
+    return;
+  }
+  
+  // Verificar indisponibilidades específicas (dia todo)
+  const indisponivelDia = indisponibilidadesSite.find(i => i.data === dataSelecionada && !i.horario_inicio);
+  if (indisponivelDia) {
+    showToast('Estamos indisponíveis nesta data: ' + (indisponivelDia.motivo || 'Dia reservado'));
+    inputData.value = '';
+    select.innerHTML = '<option value="">Selecione uma data primeiro</option>';
+    return;
+  }
+  
+  // Gerar horários com base no expediente
   const [hInicio, mInicio] = expedienteDia.horario_inicio.split(':').map(Number);
   const [hFim, mFim] = expedienteDia.horario_fim.split(':').map(Number);
   const intervalo = expedienteDia.intervalo_entre_atendimentos || 60;
@@ -691,18 +695,17 @@ function preencherHorariosDisponiveis(expedienteDia, dataSelecionada) {
   const minutosFim = hFim * 60 + mFim;
   
   // Buscar indisponibilidades de horário para esta data
-  const indisponibilidadesHorario = dataSelecionada 
-    ? indisponibilidadesSite.filter(i => i.data === dataSelecionada && i.horario_inicio)
-    : [];
+  const indisponibilidadesHorario = indisponibilidadesSite.filter(i => 
+    i.data === dataSelecionada && i.horario_inicio && i.horario_fim
+  );
   
   while (minutosAtual < minutosFim) {
     const h = Math.floor(minutosAtual / 60);
     const m = minutosAtual % 60;
-    const horario = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const horario = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
     
     // Verificar se este horário está dentro de alguma indisponibilidade
     const horarioBloqueado = indisponibilidadesHorario.some(i => {
-      if (!i.horario_inicio || !i.horario_fim) return false;
       const [hi, mi] = i.horario_inicio.split(':').map(Number);
       const [hf, mf] = i.horario_fim.split(':').map(Number);
       const minIni = hi * 60 + mi;
@@ -722,18 +725,41 @@ function preencherHorariosDisponiveis(expedienteDia, dataSelecionada) {
     return;
   }
   
-  select.innerHTML = horarios.map(h => `<option value="${h}">${h}</option>`).join('');
+  select.innerHTML = horarios.map(h => '<option value="' + h + '">' + h + '</option>').join('');
 }
 
-// Substituir a função original de preencher horários
-const _preencherHorariosOriginal = preencherHorarios;
-preencherHorarios = function() {
-  preencherHorariosDisponiveis(null);
-};
+// Função original de preencher horários (mantida como fallback)
+function preencherHorariosPadrao() {
+  const select = document.getElementById('bTime');
+  if (!select) return;
+  const horarios = [];
+  for (let h = 9; h <= 18; h++) {
+    for (const min of [0, 30]) {
+      if (h === 18 && min > 0) continue;
+      horarios.push(String(h).padStart(2, '0') + ':' + String(min).padStart(2, '0'));
+    }
+  }
+  select.innerHTML = horarios.map(h => '<option value="' + h + '">' + h + '</option>').join('');
+}
 
-// Carregar dados de disponibilidade ao iniciar
-document.addEventListener('DOMContentLoaded', async () => {
+// Substituir a função global preencherHorarios
+if (typeof preencherHorarios !== 'undefined') {
+  preencherHorarios = preencherHorariosComExpediente;
+}
+
+// Inicializar: carregar expediente ANTES de configurar o booking
+async function inicializarExpedienteNoSite() {
   await carregarExpedienteSite();
   await carregarIndisponibilidadesSite();
-  configurarDisponibilidadeData();
-});
+  
+  // Configurar data mínima
+  const inputData = document.getElementById('bDate');
+  if (inputData) {
+    const hoje = new Date();
+    inputData.min = hoje.toISOString().split('T')[0];
+  }
+  
+  if (expedienteCarregado && expedienteSite.length > 0) {
+    console.log('Expediente integrado ao site com sucesso!');
+  }
+}
